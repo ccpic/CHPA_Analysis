@@ -143,7 +143,9 @@ def plot_line(
         )
 
         endpoint = -1
-        while isinstance(df.values[endpoint][count], str) or df.values[endpoint][count] == float("inf"):
+        while isinstance(df.values[endpoint][count], str) or df.values[endpoint][
+            count
+        ] == float("inf"):
             endpoint = endpoint - 1
             if abs(endpoint) == len(df.index):
                 break
@@ -160,7 +162,9 @@ def plot_line(
                 )
 
         startpoint = 0
-        while isinstance(df.values[startpoint][count], str) or df.values[startpoint][count] == float("inf"):
+        while isinstance(df.values[startpoint][count], str) or df.values[startpoint][
+            count
+        ] == float("inf"):
             startpoint = startpoint + 1
             if startpoint == len(df.index):
                 break
@@ -182,7 +186,9 @@ def plot_line(
     plt.grid(which="major", linestyle=":", linewidth="0.5", color="grey")
 
     # Rotate labels in X axis as there are too many
-    plt.setp(ax.get_xticklabels(), rotation=xlabelrotation, horizontalalignment="center")
+    plt.setp(
+        ax.get_xticklabels(), rotation=xlabelrotation, horizontalalignment="center"
+    )
 
     # Change the format of Y axis to 'x%'
     if ylabelperc == True:
@@ -196,7 +202,12 @@ def plot_line(
     # Shrink current axis by 20% and put a legend to the right of the current axis
     box = ax.get_position()
     ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-    ax.legend(loc="center left", bbox_to_anchor=(1, 0.5), labelspacing=1.5, prop={"family": "SimHei"})
+    ax.legend(
+        loc="center left",
+        bbox_to_anchor=(1, 0.5),
+        labelspacing=1.5,
+        prop={"family": "SimHei"},
+    )
 
     ymax = ax.get_ylim()[1]
     if ymax > 3:
@@ -211,7 +222,17 @@ def plot_line(
     plt.close()
 
 
-def plot_line_simple(df, savefile, width=15, height=9, xlabelrotation=0, yfmt="{:.0%}", title="", xtitle="", ytitle=""):
+def plot_line_simple(
+    df,
+    savefile,
+    width=15,
+    height=9,
+    xlabelrotation=0,
+    yfmt="{:.0%}",
+    title="",
+    xtitle="",
+    ytitle="",
+):
     # Choose seaborn style
     sns.set_style("white")
 
@@ -224,14 +245,22 @@ def plot_line_simple(df, savefile, width=15, height=9, xlabelrotation=0, yfmt="{
         markerstyle = "o"
 
         plt.plot(
-            df.index, df[column], linewidth=2, label=column, marker=markerstyle, markersize=5, markerfacecolor="white"
+            df.index,
+            df[column],
+            linewidth=2,
+            label=column,
+            marker=markerstyle,
+            markersize=5,
+            markerfacecolor="white",
         )
 
     # Customize the major grid
     plt.grid(which="major", linestyle=":", linewidth="0.5", color="grey")
 
     # Rotate labels in X axis as there are too many
-    plt.setp(ax.get_xticklabels(), rotation=xlabelrotation, horizontalalignment="center")
+    plt.setp(
+        ax.get_xticklabels(), rotation=xlabelrotation, horizontalalignment="center"
+    )
 
     # Change the format of Y axis to 'x%'
     ax.yaxis.set_major_formatter(FuncFormatter(lambda y, _: yfmt.format(y)))
@@ -244,7 +273,12 @@ def plot_line_simple(df, savefile, width=15, height=9, xlabelrotation=0, yfmt="{
     # Shrink current axis by 20% and put a legend to the right of the current axis
     box = ax.get_position()
     ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-    ax.legend(loc="center left", bbox_to_anchor=(1, 0.5), labelspacing=1, prop={"family": "SimHei"})
+    ax.legend(
+        loc="center left",
+        bbox_to_anchor=(1, 0.5),
+        labelspacing=1,
+        prop={"family": "SimHei"},
+    )
 
     # Save the figure
     plt.savefig(savefile, format="png", bbox_inches="tight", dpi=600)
@@ -255,7 +289,9 @@ def plot_line_simple(df, savefile, width=15, height=9, xlabelrotation=0, yfmt="{
     plt.close()
 
 
-def plot_pie(sizelist, labellist, savefile, width=6, height=6, title=None, color_dict=None):
+def plot_pie(
+    sizelist, labellist, savefile, width=6, height=6, title=None, color_dict=None
+):
     sns.set_style("white")
 
     # Prepare the white center circle for Donat shape
@@ -293,7 +329,15 @@ def plot_pie(sizelist, labellist, savefile, width=6, height=6, title=None, color
             autotext.set_color("r")
 
     # Add title at the center
-    plt.text(0, 0, title, horizontalalignment="center", verticalalignment="center", size=20, fontproperties=myfont)
+    plt.text(
+        0,
+        0,
+        title,
+        horizontalalignment="center",
+        verticalalignment="center",
+        size=20,
+        fontproperties=myfont,
+    )
 
     # Combine circle part and pie part
     fig = plt.gcf()
@@ -343,9 +387,18 @@ def plot_bubble_m(
         ax.axvline(avgms, linestyle="--", linewidth=1, color="r")
     for i in range(len(x)):
         if color_dict == None:
-            ax.scatter(x[i], y[i], z[i], color=next(colors), alpha=0.6, edgecolors="black")
+            ax.scatter(
+                x[i], y[i], z[i], color=next(colors), alpha=0.6, edgecolors="black"
+            )
         else:
-            ax.scatter(x[i], y[i], z[i], color=color_dict[labels[i]], alpha=0.6, edgecolors="black")
+            ax.scatter(
+                x[i],
+                y[i],
+                z[i],
+                color=color_dict[labels[i]],
+                alpha=0.6,
+                edgecolors="black",
+            )
     # ax.scatter(x, y, s=z, c=color, alpha=0.6, edgecolors="grey")
     # ax.grid(which='major', linestyle=':', linewidth='0.5', color='black')
 
@@ -447,7 +500,13 @@ def plot_bubble(
         plt.text(
             x[i],
             y[i],
-            labels[i] + "\n" + "(" + str(xfmt.format(x[i])) + ", " + str(yfmt.format(y[i])) + ")",
+            labels[i]
+            + "\n"
+            + "("
+            + str(xfmt.format(x[i]))
+            + ", "
+            + str(yfmt.format(y[i]))
+            + ")",
             ha="center",
             va="center",
             multialignment="center",
@@ -539,7 +598,9 @@ def plot_dual_line(
         )
 
         endpoint = -1
-        while np.isnan(df1.values[endpoint][count]) or df1.values[endpoint][count] == float("inf"):
+        while np.isnan(df1.values[endpoint][count]) or df1.values[endpoint][
+            count
+        ] == float("inf"):
             endpoint = endpoint - 1
             if abs(endpoint) == len(df1.index):
                 break
@@ -556,7 +617,9 @@ def plot_dual_line(
                 )
 
         startpoint = 0
-        while np.isnan(df1.values[startpoint][count]) or df1.values[startpoint][count] == float("inf"):
+        while np.isnan(df1.values[startpoint][count]) or df1.values[startpoint][
+            count
+        ] == float("inf"):
             startpoint = startpoint + 1
             if startpoint == len(df1.index):
                 break
@@ -578,7 +641,9 @@ def plot_dual_line(
     plt.grid(which="major", linestyle=":", linewidth="0.5", color="grey")
 
     # Rotate labels in X axis as there are too many
-    plt.setp(ax.get_xticklabels(), rotation=xlabelrotation, horizontalalignment="center")
+    plt.setp(
+        ax.get_xticklabels(), rotation=xlabelrotation, horizontalalignment="center"
+    )
 
     # Change the format of Y axis to 'x%'
     ax.yaxis.set_major_formatter(plt.NullFormatter())
@@ -608,7 +673,9 @@ def plot_dual_line(
         )
 
         endpoint = -1
-        while np.isnan(df2.values[endpoint][count]) or df2.values[endpoint][count] == float("inf"):
+        while np.isnan(df2.values[endpoint][count]) or df2.values[endpoint][
+            count
+        ] == float("inf"):
             endpoint = endpoint - 1
             if abs(endpoint) == len(df2.index):
                 break
@@ -625,7 +692,9 @@ def plot_dual_line(
                 )
 
         startpoint = 0
-        while np.isnan(df2.values[startpoint][count]) or df2.values[startpoint][count] == float("inf"):
+        while np.isnan(df2.values[startpoint][count]) or df2.values[startpoint][
+            count
+        ] == float("inf"):
             startpoint = startpoint + 1
             if startpoint == len(df2.index):
                 break
@@ -647,7 +716,9 @@ def plot_dual_line(
     plt.grid(which="major", linestyle=":", linewidth="0.5", color="grey")
 
     # Rotate labels in X axis as there are too many
-    plt.setp(ax.get_xticklabels(), rotation=xlabelrotation, horizontalalignment="center")
+    plt.setp(
+        ax.get_xticklabels(), rotation=xlabelrotation, horizontalalignment="center"
+    )
 
     # Change the format of Y axis to 'x%'
     ax.yaxis.set_major_formatter(plt.NullFormatter())
@@ -660,7 +731,12 @@ def plot_dual_line(
     # Shrink current axis by 20% and put a legend to the right of the current axis
     # box = ax.get_position()
     # ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-    ax.legend(loc="center left", bbox_to_anchor=(1.1, 0.5), labelspacing=1, prop={"family": "SimHei"})
+    ax.legend(
+        loc="center left",
+        bbox_to_anchor=(1.1, 0.5),
+        labelspacing=1,
+        prop={"family": "SimHei"},
+    )
 
     ymax = ax.get_ylim()[1]
     if ymax > 3:
@@ -698,10 +774,24 @@ def plot_bar_line(
 
     ax.bar(x, y_bar, color="teal", width=15, label=y_bar_label)
     ax2.plot(
-        x, y_line1, color="crimson", label=y_line1_label, linewidth=3, marker="o", markersize=9, markerfacecolor="white"
+        x,
+        y_line1,
+        color="crimson",
+        label=y_line1_label,
+        linewidth=3,
+        marker="o",
+        markersize=9,
+        markerfacecolor="white",
     )
     ax2.plot(
-        x, y_line2, color="orange", label=y_line2_label, linewidth=3, marker="o", markersize=9, markerfacecolor="white"
+        x,
+        y_line2,
+        color="orange",
+        label=y_line2_label,
+        linewidth=3,
+        marker="o",
+        markersize=9,
+        markerfacecolor="white",
     )
     ax2.set_ylim(ymin, ymax)
     ax.set_ylabel("滚动年销售额" + unit)
@@ -738,7 +828,13 @@ def plot_bar(
     haslegend=True,
 ):
 
-    ax = df.plot(kind="bar", stacked=stacked, figsize=(width, height), alpha=0.8, edgecolor="black")
+    ax = df.plot(
+        kind="bar",
+        stacked=stacked,
+        figsize=(width, height),
+        alpha=0.8,
+        edgecolor="black",
+    )
 
     plt.title(title, fontproperties=myfont, fontsize=18)
     plt.xlabel(xtitle, fontproperties=myfont)
@@ -794,9 +890,13 @@ def refine_outlier(df, column, upper_threshold):
     for i, idx in enumerate(index_list):
         if df.loc[idx, column] > upper_threshold:
             if column == "Product_n":
-                index_list[i] = idx + " 商品数：" "{:.1f}".format((df.loc[idx, column])) + "!!!"
+                index_list[i] = (
+                    idx + " 商品数：" "{:.1f}".format((df.loc[idx, column])) + "!!!"
+                )
             elif column == "GR":
-                index_list[i] = idx + " 增长率：" "{:.0%}".format((df.loc[idx, column])) + "!!!"
+                index_list[i] = (
+                    idx + " 增长率：" "{:.0%}".format((df.loc[idx, column])) + "!!!"
+                )
     df.index = index_list
     df.loc[df[column] > upper_threshold, column] = upper_threshold
 

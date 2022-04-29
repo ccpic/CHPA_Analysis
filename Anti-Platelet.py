@@ -6,7 +6,7 @@ table_name = "data"
 #     "MOLECULE in ('氢氯吡格雷|CLOPIDOGREL', '氯吡格雷|CLOPIDOGREL', '替格瑞洛|TICAGRELOR')"
 # )
 
-condition = "MOLECULE in ('氢氯吡格雷|CLOPIDOGREL', '氯吡格雷|CLOPIDOGREL', '替格瑞洛|TICAGRELOR') OR PRODUCT='拜阿司匹灵|BAYASPIRIN         BAY'"
+condition = "MOLECULE in ('氢氯吡格雷|CLOPIDOGREL', '氯吡格雷|CLOPIDOGREL', '替格瑞洛|TICAGRELOR') OR PRODUCT='拜阿司匹灵|BAYASPIRIN         B/S'"
 
 sql = "SELECT * FROM " + table_name + " WHERE " + condition
 df = pd.read_sql(sql=sql, con=engine)
@@ -42,13 +42,36 @@ convert_std_volume(df, "MOLECULE", "替格瑞洛", "60MG", 0.5)
 # r.plot_overall_performance(dimension='PRODUCT', unit='Volume (Std Counting Unit)')
 
 r = chpa(df, name="抗血小板市场")
-# r.plot_overall_performance(dimension='MOLECULE')
-# r.plot_overall_performance(dimension='MOLECULE', unit='Volume (Std Counting Unit)')
 
-# r.plot_group_size_diff(index='PRODUCT_CORP', date=[r.latest_date()], dimension=None,
-#                       column='泰嘉\n深圳信立泰药业股份有限公司', adjust_scale=0.01, series_limit=250, showLabel=True, unit='Value')
-# r.plot_group_size_diff(index='PRODUCT_CORP', date=[r.latest_date()], dimension=None,
-#                       column='泰嘉\n深圳信立泰药业股份有限公司', adjust_scale=0.03, series_limit=250, showLabel=True, unit='Volume (Std Counting Unit)')
+# r.plot_overall_performance(
+#     dimension="MOLECULE", sorter=["替格瑞洛", "氯吡格雷", "阿司匹林"]
+# )
+# r.plot_overall_performance(
+#     dimension="MOLECULE",
+#     unit="Volume (Std Counting Unit)",
+#     sorter=["替格瑞洛", "氯吡格雷", "阿司匹林"],
+# )
+
+# r.plot_group_size_diff(
+#     index="PRODUCT_CORP",
+#     date=[r.latest_date()],
+#     dimension=None,
+#     column="泰嘉\n深圳信立泰药业股份有限公司",
+#     adjust_scale=0.01,
+#     series_limit=250,
+#     showLabel=True,
+#     unit="Value",
+# )
+# r.plot_group_size_diff(
+#     index="PRODUCT_CORP",
+#     date=[r.latest_date()],
+#     dimension=None,
+#     column="泰嘉\n深圳信立泰药业股份有限公司",
+#     adjust_scale=0.03,
+#     series_limit=250,
+#     showLabel=True,
+#     unit="Volume (Std Counting Unit)",
+# )
 
 # r.plot_group_share_gr(
 #     index="PRODUCT_CORP",
@@ -77,7 +100,11 @@ r = chpa(df, name="抗血小板市场")
 
 # Select * from data Where PERIOD = 'MAT' And UNIT = 'Value' AND (MOLECULE in ('替格瑞洛|TICAGRELOR', '氯吡格雷|CLOPIDOGREL', '氢氯吡格雷|CLOPIDOGREL') OR PRODUCT in ('拜阿司匹灵|BAYASPIRIN         BAY'))
 
-r.plot_share_trend(dimension="PRODUCT", column=None, show_list=["波立维", "泰嘉", "帅信/帅泰", "恩存", "拜阿司匹灵", "倍林达", "泰仪"])
+r.plot_share_trend(
+    dimension="PRODUCT",
+    column=None,
+    show_list=["波立维", "泰嘉", "帅信/帅泰", "恩存", "拜阿司匹灵", "倍林达", "泰仪"],
+)
 r.plot_share_trend(
     dimension="PRODUCT",
     column=None,
