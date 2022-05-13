@@ -31,7 +31,6 @@ if __name__ == "__main__":
 
     p.add_img_slide()
     p.add_table(df_kpi.head(10), font_size=Pt(9))
-    p.save()
 
     df_kpi = c.get_kpi("CORPORATION", is_formatted=False)
 
@@ -47,4 +46,6 @@ if __name__ == "__main__":
         style={"xlabel": "MAT金额", "ylabel": "MAT金额净增长"},
     )
 
-    f.plot(x_fmt="{:,.0f}", y_fmt="{:+,.0f}", y_avg=0)
+    p.add_img_slide()
+    p.add_image(f.plot(x_fmt="{:,.0f}", y_fmt="{:+,.0f}", y_avg=0), height=Cm(13))
+    p.save()

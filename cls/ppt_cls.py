@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 import datetime
 from matplotlib.gridspec import GridSpec
 from pptx import presentation, Presentation, table
+from pptx.shapes import picture
 from pptx.util import Inches, Pt, Cm
 from pptx.enum.shapes import MSO_SHAPE
 from pptx.dml.color import RGBColor
@@ -128,16 +129,7 @@ class ChpaPPT(object):
             slide标题, by default ""
         layout_style : int, optional
             内容页模板的index, by default 0
-        ----------
-        imgs : list
-            包含要插入图片参数字典的列表, by default None
-            参数 :
-                image_file: 图片路径位置
-                top: 图片位置-上边距, 默认为Cm(3.5)
-                left: 图片位置-左边距, 默认会计算图片自动居中
-                width: 图片宽度，默认为幻灯片宽度，width和height如只提供其中一项将按比例缩放
-                height: 图片宽度，默认为None
-        ----------
+
         labels : list
             包含要插入矩形含文字标签参数字典的列表, by default None
             参数 :
@@ -149,27 +141,6 @@ class ChpaPPT(object):
                 font_size: 文本大小，str, 默认为Pt(12)
                 font_color: 文本颜色，RGBColor, 默认为RGBColor(0, 0, 0)
                 bg_color: 形状背景色，RGBColor, 默认为RGBColor(255, 255, 255)
-        ----------
-        tables : list
-            包含要插入表格参数字典的列表, by default None
-            参数 :
-                data: 表格数据，pd.Dataframe
-                rows: 表格行数，默认为data的行数
-                cols: 表格列数，默认为data的列数
-                top: 标签形状位置-上边距, 默认为Cm(3.5)
-                left: 标签形状位置-左边距, 默认会计算表格自动居中
-                width: 标签形状宽度，默认为幻灯片宽度
-                height: 标签形状宽度，默认为Cm(10)
-                cell_color: 表格特定单元格背景着色，包含2个参数的tuple,默认为None
-                    参数1: 指定单元格x,y的tuple
-                    参数2: 指定颜色RGBColor
-                font_color: 表格特定单元格字体颜色，包含2个参数的tuple,默认为None
-                    参数1: 指定单元格x,y的tuple
-                    参数2: 指定颜色RGBColor
-                merge_cells: 表格特定单元格合并，包含2个参数的tuple，默认为None
-                    参数1: 要合并的最左上的单元格x,y的tuple
-                    参数2: 要合并的最右下的单元格x,y的tuple
-        ----------
         textboxes: list
             包含要插入文本框参数字典的列表, by default None
         """
@@ -180,19 +151,6 @@ class ChpaPPT(object):
         # 标题
         title_shape = shapes.title
         title_shape.text = title
-
-        # 插入图片
-        if imgs is not None:
-            for img in imgs:
-                obj_img = slide.shapes.add_picture(
-                    image_file=img["image_file"],
-                    top=img.get("top", IMAGE_TOP),
-                    left=img.get("left", 0),
-                    width=img.get("width", self.prs.slide_width),
-                    height=img.get("height"),
-                )
-                if "left" in img is False:
-                    obj_img.left = (self.prs.slide_width - obj_img.width) / 2  # 默认图片居中
 
         # 插入矩形含文本标签labels
         if labels is not None:
@@ -323,6 +281,44 @@ class ChpaPPT(object):
         merge_cells: Tuple[Tuple, Tuple] = None,
     ) -> table:
 
+        """在当前（最新幻灯页）插入数据表格
+
+        Parameters
+        ----------
+        data : pd.DataFrame
+            表格数据
+        rows : int, optional
+            表格行数, 如为None怎么默认为data的行数, by default None
+        cols : int, optional
+            表格列数, 如为None怎么默认为data的列数, by default None
+        top : Union[float, Inches, Cm], optional
+            表格位置-上边距, by default Cm(3.5)
+        left : Union[float, Inches, Cm], optional
+            表格位置-左边距, 如为None默认会计算表格自动居中, by default None
+        width : Union[float, Inches, Cm], optional
+            表格宽度，如为None默认为幻灯片宽度, by default None
+        height : Union[float, Inches, Cm], optional
+            图片高度, by default Cm(10)
+        font_size : Pt, optional
+            字体大小, by default Pt(11)
+        cells_color : dict, optional
+            表格特定单元格背景着色, 包含2个参数的tuple, by default None
+            参数1: 指定单元格x,y的tuple
+            参数2: 指定颜色RGBColor
+        fonts_color : dict, optional
+            表格特定单元格字体颜色，包含2个参数的tuple, by default None
+            参数1: 指定单元格x,y的tuple
+            参数2: 指定颜色RGBColor
+        merge_cells : Tuple[Tuple, Tuple], optional
+            表格特定单元格合并，包含2个参数的tuple, by default None
+            参数1: 要合并的最左上的单元格x,y的tuple
+            参数2: 要合并的最右下的单元格x,y的tuple
+        Returns
+        -------
+        table
+            在幻灯页插入表格后返回表格的形状对象
+        """
+
         slide = self.prs.slides[-1]
 
         table_data = data.reset_index().T.reset_index().T.astype(str)
@@ -390,3 +386,48 @@ class ChpaPPT(object):
             shape_table.left = int(
                 (self.prs.slide_width - shape_table.width) / 2
             )  # 默认表格居中
+
+        return shape_table
+
+    def add_image(
+        self,
+        img_path: str,
+        top: Union[float, Inches, Cm] = Cm(3.5),
+        left: Union[float, Inches, Cm] = None,
+        width: Union[float, Inches, Cm] = None,
+        height: Union[float, Inches, Cm] = None,
+    ) -> picture:
+        """在当前（最新幻灯页）插入图片
+
+        Parameters
+        ----------
+        img_path : str
+            图片路径位置
+        top : Union[float, Inches, Cm], optional
+            图片位置-上边距, by default Cm(3.5)
+        left : Union[float, Inches, Cm], optional
+            图片位置-左边距, 如为None默认会计算表格自动居中, by default None
+        width : Union[float, Inches, Cm], optional
+            图片宽度，如为None且height也为None的情况下会默认为幻灯片宽度, by default None
+        height : Union[float, Inches, Cm], optional
+            图片高度, by default None
+
+        Returns
+        -------
+        picture
+            在幻灯页插入图片后返回图片的形状对象
+        """
+
+        slide = self.prs.slides[-1]
+
+        obj_img = slide.shapes.add_picture(
+            image_file=img_path,
+            top=top,
+            left=left if left is not None else 0,
+            width=width if width is not None or height is not None else self.prs.slide_width,
+            height=height,
+        )
+        if left is None and height is not None:
+            obj_img.left = int((self.prs.slide_width - obj_img.width) / 2)  # 默认图片居中
+
+        return obj_img
