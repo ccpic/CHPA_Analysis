@@ -777,6 +777,30 @@ class PlotBubble(GridFigure):
         bubble_scale: float = 1,
         show_reg=False,
     ) -> str:
+        """绘制散点图
+
+        Parameters
+        ----------
+        x_fmt : str, optional
+            x轴数值格式字符串, by default "{:.0%}"
+        y_fmt : str, optional
+            y轴数值格式字符串, by default "{:+.0%}"
+        x_avg : float, optional
+            x轴平均值或其他分隔值，如提供则绘制x轴分隔竖线, by default None
+        y_avg : float, optional
+            y轴平均值或其他分隔值，如提供则绘制y轴分隔竖线, by default None
+        label_limit : int, optional
+            限制显示标签的个数, by default 15
+        bubble_scale : float, optional
+            气泡大小系数, by default 1
+        show_reg : bool, optional
+            是否显示x,y的拟合趋势及置信区间, by default False
+
+        Returns
+        -------
+        str
+            _description_
+        """
         for j, ax in enumerate(self.axes):
             df = self.data[j]
             x = df.iloc[:, 0].tolist()
