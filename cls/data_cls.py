@@ -207,7 +207,7 @@ class ChpaAnalyzer(pd.DataFrame):
 
         pivoted = pd.pivot_table(
             self.query(query_str),
-            values=values,
+            values=values if values is not None else self.value_column,
             index=index,
             columns=columns,
             aggfunc=aggfunc,
@@ -244,13 +244,20 @@ class ChpaAnalyzer(pd.DataFrame):
 
         return pivoted
 
-    def get_kpi(self, column: str, is_formatted: bool = False) -> pd.DataFrame:
+    def get_kpi(
+        self,
+        column: str,
+        query_str: str = "ilevel_0 in ilevel_0",
+        is_formatted: bool = False,
+    ) -> pd.DataFrame:
         """根据分析目标字段返回透视后的kpi表格，包括以分析目标字段breakout出的各个项目的Rank(变化), MAT金额, 净增长, 份额, 份额变化以及EI
 
         Parameters
         ----------
         column : str
             分析目标字段，如TC, MOLECULE, PRODUCT, CORPORATION等
+        query_str: str, optional
+            筛选的数据范围，类似sql写法, by default "ilevel_0 in ilevel_0"
         is_formatted : bool, by default False
             是否格式化数值
 
@@ -259,8 +266,12 @@ class ChpaAnalyzer(pd.DataFrame):
         pd.DataFrame
             返回一个包含结果的pandas dataframe
         """
+        print(query_str)
         pivoted = self.get_pivot(
-            index=self.date_column, columns=column, values="AMOUNT"
+            index=self.date_column,
+            columns=column,
+            values=self.value_column,
+            query_str=query_str,
         )
 
         pivoted = pivoted.sort_values(by=pivoted.index[-1], ascending=False, axis=1)

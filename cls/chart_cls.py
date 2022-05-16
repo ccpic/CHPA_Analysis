@@ -1,3 +1,4 @@
+from ipaddress import v4_int_to_packed
 from matplotlib import axes
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
@@ -487,7 +488,7 @@ def data_to_list(data):
         list_df = []
         for k, v in data.items():
             list_df.append(v)
-    elif isinstance(data, pd.DataFrame):
+    elif isinstance(data, pd.DataFrame) or isinstance(data, pd.Series):
         list_df = [data]
     elif isinstance(data, tuple):
         list_df = list(data)
@@ -763,6 +764,82 @@ class GridFigure(Figure):
         plt.close()
 
         return path
+
+
+# 继承基本类，瀑布图
+class PlotWaterfall(GridFigure):
+    def plot(self, pre: List[tuple] = None, net_index: str = "net") -> str:
+        for j, ax in enumerate(self.axes):
+            srs = pd.Series(data=pre[j][1], index=[pre[j][0]])
+            try:
+                srs = srs.append(self.data[j].squeeze())
+            except:
+                srs = srs.append(
+                    pd.Series(data=self.data[j].values[0], index=self.data[j].index)
+                )  # 当data只有一行时，格式是numpy而不是df或者series，使用squeeze再append会报错
+
+            bottom = 0
+            for k, index in enumerate(srs.index):
+                v = srs.iloc[k]
+                if index == srs.index[0]:
+                    color = COLOR_DICT.get(index, "teal")
+                else:
+                    color = "red" if v < 0 else "green"
+
+                bar = ax.bar(
+                    index,
+                    srs.iloc[k],
+                    color=color,
+                    bottom=bottom,
+                    label=v,
+                )
+
+                # 添加连接线
+                ax.hlines(
+                    y=bottom + v,
+                    xmin=k,
+                    xmax=k + 1,
+                    color="black",
+                    alpha=0.3,
+                )
+
+                # 添加标签
+                ax.text(
+                    index,
+                    bottom + srs.iloc[k],
+                    self.fmt[j].format(srs.iloc[k]),
+                    color=color,
+                    va="bottom" if srs.iloc[k] > 0 else "top",
+                    ha="center",
+                    fontsize=self.fontsize,
+                    **NUM_FONT,
+                )
+
+                bottom += v
+            # 绘制瀑布加减后的结果
+            ax.bar(
+                net_index,
+                srs.sum(),
+                color=COLOR_DICT.get(index, "teal"),
+                bottom=0,
+                label=srs.sum(),
+            )
+            # 添加瀑布加减后的结果标签
+            ax.text(
+                net_index,
+                srs.sum(),
+                self.fmt[j].format(srs.sum()),
+                color=COLOR_DICT.get(index, "teal"),
+                va="bottom",
+                ha="center",
+                fontsize=self.fontsize,
+                **NUM_FONT,
+            )
+
+            # 因为标签问题y轴最大值放大20%
+            ax.set_ylim(ax.get_ylim()[0], ax.get_ylim()[1] * 1.2)
+
+        self.save()
 
 
 # 继承基本类, 气泡图
