@@ -13,6 +13,7 @@ import matplotlib.font_manager as fm
 import matplotlib as mpl
 import seaborn as sns
 from matplotlib.ticker import FuncFormatter
+import matplotlib.patches as patches
 import textwrap
 import math
 import matplotlib.dates as mdates
@@ -21,6 +22,7 @@ from typing import List
 import matplotlib.cm as cm
 from adjustText import adjust_text
 import scipy.stats as stats
+import squarify
 
 mpl.rcParams["font.sans-serif"] = ["SimHei"]
 mpl.rcParams["font.serif"] = ["SimHei"]
@@ -532,6 +534,8 @@ class GridFigure(Figure):
         fmt: list = None,  # 每个grid的数字格式
         style: dict = None,  # 风格字典
         table_data=None,  # 是否增加数据表格
+        color_list: list = COLOR_LIST,  # 默认颜色列表
+        color_dict: dict = COLOR_DICT,  # 默认颜色字典
         *args,
         **kwargs,
     ):
@@ -543,6 +547,9 @@ class GridFigure(Figure):
         self.gs = gs
         self.fmt = fmt
         self.style = style
+        self.color_list = color_list
+        self.color_dict = color_dict
+
         if table_data is None:
             self.has_table = False
         else:
@@ -842,6 +849,114 @@ class PlotWaterfall(GridFigure):
         self.save()
 
 
+# 继承基本类, 矩形Treemap
+class PlotTreemap(GridFigure):
+    def plot(self, label_fontsize: int = 30) -> str:
+        """使用squarify包的算法生成矩形Treemap，数据需要2列，一列为绝对值，一列为净增长或增长率
+
+        Parameters
+        ----------
+        label_fontsize : int, optional
+            标签文字大小, by default 30
+
+        Returns
+        -------
+        str
+            生成图片并返回保存路径
+        """
+
+        for j, ax in enumerate(self.axes):
+            df = self.data[j]
+            # 合并名称和值为Labels
+            list_index = df.index.tolist()
+            list_name = []
+            for name in list_index:
+                if len(name) > 8:
+                    name = name[:8] + "..."  # 防止太长的标签，在之后的可视化中会出界
+                list_name.append(name)
+            list_size = df.iloc[:, 0].tolist()
+            list_diff = df.iloc[:, 1].tolist()
+            list_labels = [
+                m + "\n" + str("{:,.0f}".format(n)) + "\n" + str("{:+,.0f}".format(p))
+                for m, n, p in zip(list_name, list_size, list_diff)
+            ]
+
+            # Squarify包要求width和height的乘积等于上方主数据的和，所以要如此设置
+            ax.set_xlim(0, self.width)
+            ax.set_ylim(0, self.height)
+
+            # 创造和同比净增长关联的颜色方案
+            min_diff = min(list_diff)
+            max_diff = max(list_diff)
+            if min_diff > 0:
+                cmap = mpl.cm.Greens
+                norm = mpl.colors.Normalize(vmin=min_diff, vmax=max_diff)
+            elif max_diff < 0:
+                cmap = mpl.cm.Reds
+                norm = mpl.colors.Normalize(vmin=min_diff, vmax=max_diff)
+            else:
+                cmap = mpl.cm.RdYlGn  # 绿色为正，红色为负
+                norm = mpl.colors.TwoSlopeNorm(
+                    vmin=min_diff, vcenter=0, vmax=max_diff
+                )  # 强制0为中点的正太分布渐变色
+
+            colors = [cmap(norm(value)) for value in list_diff]
+
+            # 使用Squarify导出矩形数据，以数据手动画图，可以控制更多元素
+            list_size.sort(reverse=True)  # sizes必须先由大到小排序
+            list_size = squarify.normalize_sizes(
+                list_size, self.width, self.height
+            )  # 根据设置的总体宽高正态化数据
+            rects_data = squarify.squarify(
+                list_size, 0, 0, self.width, self.height
+            )  # Squarify算法计算出所有矩形的数据
+
+            # 根据数据循环创建矩形并添加标签
+            for i, r in enumerate(rects_data):
+                rect = patches.Rectangle(
+                    (r["x"], r["y"]),
+                    r["dx"],
+                    r["dy"],
+                    linewidth=2,
+                    edgecolor="#222222",
+                    facecolor=colors[i],
+                )  # 创建四边形
+                ax.add_patch(rect)  # Add patch到轴
+                # 动态添加标签并设置标签字体大小
+                if r["dx"] > 0.02 * (self.width * self.height) or r["dx"] * r[
+                    "dy"
+                ] > 0.01 * (self.width * self.height):
+                    plt.text(
+                        r["x"] + r["dx"] / 2,  # rect的水平中心
+                        r["y"] + r["dy"] / 2,  # rect的垂直中心
+                        list_labels[i],
+                        ha="center",
+                        va="center",
+                        multialignment="center",
+                        fontproperties=MYFONT,
+                        fontsize=(label_fontsize * r["dx"])
+                        ** 0.5,  # / (self.width * self.height),
+                    )
+                # 前十名左上角添加Rank
+                if i < 10:
+                    plt.text(
+                        r["x"] + r["dx"] * 0.1,  # rect的left稍往右偏移
+                        r["y"] + r["dy"] - r["dx"] * 0.1,  # rect的Top稍往下偏移
+                        i + 1,
+                        ha="center",
+                        va="center",
+                        multialignment="center",
+                        fontproperties=MYFONT,
+                        fontsize=(label_fontsize * r["dx"])
+                        ** 0.5,  # / (self.width * self.height),
+                    )
+                # 去除边框的刻度
+                ax.set_xticks([])
+                ax.set_yticks([])
+
+        self.save()
+
+
 # 继承基本类, 气泡图
 class PlotBubble(GridFigure):
     def plot(
@@ -876,7 +991,7 @@ class PlotBubble(GridFigure):
         Returns
         -------
         str
-            _description_
+            生成图片并返回保存路径
         """
         for j, ax in enumerate(self.axes):
             df = self.data[j]
@@ -1740,25 +1855,42 @@ class PlotStackedBar(GridFigure):
 
 # 继承基本类，堆积柱状对比图（增强型）类
 class PlotStackedBarPlus(GridFigure):
-    def plot(self, *args, **kwargs):
+    def plot(self, label_threshold: float = 0.02) -> str:
+        """绘制一个同时显示绝对值，份额和增长率的组合堆积柱状图
+
+        Parameters
+        ----------
+        label_threshold : float, optional
+            份额低于此阈值的项目不显示label，防止较多小数值项目的label扎堆, by default 0.02
+
+        Returns
+        -------
+        str
+            生成图片并返回保存路径
+        """
         H_INDEX = 1.03  # 外框对比bar的高度系数
         for j, ax in enumerate(self.axes):
             # 处理绘图数据
-            df = self.data[j].transpose()
-            df_share = self.data[j].apply(lambda x: x / x.sum()).transpose()
-            df_gr = self.data[j].pct_change(axis=1).transpose()
+            df = self.data[j]
+            df_share = self.data[j].apply(lambda x: x / x.sum(), axis=1)
+            df_gr = self.data[j].pct_change(axis=0)
+
+            print(df, df_share, df_gr)
 
             # 绝对值bar图和增长率标注
             for k, index in enumerate(df.index):
                 bottom = 0
                 bottom_gr = 0
                 bbox_props = None
+
+                color_iterator = itertools.cycle(self.color_list)
+
                 for i, col in enumerate(df):
                     # 如果有指定颜色就颜色，否则按预设列表选取
-                    if col in COLOR_DICT.keys():
-                        color = COLOR_DICT[col]
+                    if col in self.color_dict.keys():
+                        color = self.color_dict[col]
                     else:
-                        color = COLOR_LIST[i]
+                        color = next(color_iterator)
 
                     # 绝对值bar图
                     ax.bar(
@@ -1769,28 +1901,29 @@ class PlotStackedBarPlus(GridFigure):
                         bottom=bottom,
                         label=col,
                     )
-                    ax.text(
-                        index,
-                        bottom + df.loc[index, col] / 2,
-                        "{:,.0f}".format(df.loc[index, col])
-                        + "("
-                        + "{:.1%}".format(df_share.loc[index, col])
-                        + ")",
-                        color="white",
-                        va="center",
-                        ha="center",
-                        fontsize=self.fontsize,
-                    )
+                    if df_share.loc[index, col] > label_threshold:
+                        ax.text(
+                            index,
+                            bottom + df.loc[index, col] / 2,
+                            "{:,.0f}".format(df.loc[index, col])
+                            + "("
+                            + "{:.1%}".format(df_share.loc[index, col])
+                            + ")",
+                            color="white",
+                            va="center",
+                            ha="center",
+                            fontsize=self.fontsize,
+                        )
 
                     if math.isnan(df.loc[index, col]) is False:
                         bottom += df.loc[index, col]
 
-                    if k > 0:
+                    if k > 0 and df_share.loc[index, col] > label_threshold:
                         # 各系列增长率标注
                         ax.annotate(
                             "{:+.1%}".format(df_gr.iloc[k, i]),
                             xy=(
-                                0.5,
+                                k - 0.5,
                                 (bottom_gr + df.iloc[k - 1, i] / 2 + df.iloc[k, i] / 2)
                                 / 2,
                             ),
@@ -1812,7 +1945,7 @@ class PlotStackedBarPlus(GridFigure):
                     ax.annotate(
                         "{:+.1%}".format(gr),
                         xy=(
-                            0.5,
+                            k - 0.5,
                             (df.iloc[k, :].sum() + df.iloc[k - 1, :].sum())
                             / 2
                             * (H_INDEX + 0.02),
