@@ -846,7 +846,7 @@ class PlotWaterfall(GridFigure):
             # 因为标签问题y轴最大值放大20%
             ax.set_ylim(ax.get_ylim()[0], ax.get_ylim()[1] * 1.2)
 
-        self.save()
+        return self.save()
 
 
 # 继承基本类, 矩形Treemap
@@ -1646,10 +1646,7 @@ class PlotStackedBar(GridFigure):
             **kwargs,
         )
         self.data_line = data_to_list(data_line)
-        if fmt_line is not None:
-            self.fmt_line = ["{:%s}" % f for f in fmt_line]
-        else:
-            self.fmt_line = None
+        self.fmt_line = data_to_list(fmt_line)
 
         if self.data_line is not None:
             check_data_with_axes(self.data_line, self.axes)
@@ -1667,10 +1664,10 @@ class PlotStackedBar(GridFigure):
     ):
         for j, ax in enumerate(self.axes):
             # 处理绘图数据
-            df = self.data[j].transpose()
-            df_gr = self.data[j].pct_change(axis=1).transpose()
+            df = self.data[j]
+            df_gr = self.data[j].pct_change()
             if self.data_line is not None:
-                df_line = self.data_line[j].transpose()
+                df_line = self.data_line[j]
 
             # 绝对值bar图和增长率标注
             for k, index in enumerate(df.index):
@@ -1689,16 +1686,17 @@ class PlotStackedBar(GridFigure):
                     else:
                         color = COLOR_LIST[i]
 
-                    # 绝对值bar图
-                    if isinstance(df.index, pd.DatetimeIndex):  # 如果x轴是日期，宽度是以“天”为单位的
-                        bar_width = 20
-                    else:
-                        bar_width = 0.5
+                    # # 绝对值bar图
+                    # if isinstance(df.index, pd.DatetimeIndex):  # 如果x轴是日期，宽度是以“天”为单位的
+                    #     bar_width = 20
+                    # else:
+                    #     bar_width = 0.5
+
 
                     bar = ax.bar(
                         index,
                         df.loc[index, col],
-                        width=bar_width,
+                        # width=bar_width,
                         color=color,
                         bottom=bottom,
                         label=col,
@@ -1874,8 +1872,6 @@ class PlotStackedBarPlus(GridFigure):
             df = self.data[j]
             df_share = self.data[j].apply(lambda x: x / x.sum(), axis=1)
             df_gr = self.data[j].pct_change(axis=0)
-
-            print(df, df_share, df_gr)
 
             # 绝对值bar图和增长率标注
             for k, index in enumerate(df.index):

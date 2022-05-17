@@ -169,9 +169,11 @@ class ChpaAnalyzer(pd.DataFrame):
         aggfunc: Callable = sum,  # 默认求和
         query_str: str = "ilevel_0 in ilevel_0",  # 默认query语句能返回df总体
         perc: bool = False,
-        sort_values: bool = True,
+        sort_values: Union[str, None] = None,
+        ascending: bool = True,
         dropna: bool = True,
         fillna: bool = True,
+        col_others: Union[int, None] = None,
         **kwargs,
     ) -> pd.DataFrame:
         """返回数据透视的结果
@@ -190,12 +192,21 @@ class ChpaAnalyzer(pd.DataFrame):
             筛选的数据范围，类似sql写法, by default "ilevel_0 in ilevel_0"
         per: bool, optional
             是否转换为行汇总的百分比, by default False
-        sort_values : bool, optional
-            是否排序，如是按照行/汇总总和大小排序, by default True
+        sort_values : Union[str, None], optional
+            如何排序，"by_last_row", "by_last_col", "by_row_sum", "by_col_sum", by default None
+            "original" - 不重新排序
+            "last_row" - 根据最后一行排序
+            "last_col" - 根据最后一列排序
+            "by_row_sum" - 根据行的和排序
+            "by_col_sum" - 根据列的和排序
+        ascending: bool, optional
+            排序是顺序还是倒序, by default True
         dropna : bool, optional
             是否去除空值，如是将把全部为空整行/列去除, by default True
         fillna : bool, optional
             是否替换空值，如是将空值替换为0, by default True
+        col_others: Union[int, None], optional
+            如非None, 把排序后column系数大于此的项目合并为"其他"
 
         Returns
         -------
@@ -212,6 +223,7 @@ class ChpaAnalyzer(pd.DataFrame):
             columns=columns,
             aggfunc=aggfunc,
         )
+
         # pivot table对象转为默认df
         pivoted = pd.DataFrame(pivoted.to_records())
         try:
@@ -219,17 +231,32 @@ class ChpaAnalyzer(pd.DataFrame):
         except KeyError:  # 当index=None时，捕捉错误并set_index("index"字符串)
             pivoted.set_index("index", inplace=True)
 
-        if sort_values is True:
-            s = pivoted.sum(axis=1).sort_values(ascending=False)
+        if sort_values == "by_col_sum":
+            s = pivoted.sum(axis=1).sort_values(ascending=ascending)
             pivoted = pivoted.loc[s.index, :]  # 行按照汇总总和大小排序
-            s = pivoted.sum(axis=0).sort_values(ascending=False)
+        if sort_values == "by_row_sum":
+            s = pivoted.sum(axis=0).sort_values(ascending=ascending)
             pivoted = pivoted.loc[:, s.index]  # 列按照汇总总和大小排序
+        if sort_values == "by_last_row":
+            pivoted = pivoted.sort_values(
+                by=pivoted.index[-1], axis=1, ascending=ascending
+            )  # 列根据最后一行排序
+        if sort_values == "by_last_col":
+            pivoted = pivoted.sort_values(
+                by=pivoted.columns[-1], axis=0, ascending=ascending
+            )  # 行根据最后一列排序
 
         if columns in D_SORTER:
             pivoted = pivoted.reindex(columns=D_SORTER[columns])
 
         if index in D_SORTER:
             pivoted = pivoted.reindex(D_SORTER[index])  # 对于部分变量有固定排序
+
+        if col_others is not None and pivoted.shape[1] > col_others:
+            pivoted_others = pivoted.iloc[:, col_others:].sum(axis=1)
+            pivoted_others.name = "其他"
+            pivoted = pivoted.iloc[:, :col_others]
+            pivoted = pd.concat([pivoted, pivoted_others], axis=1)
 
         # 删除NA或替换NA为0
         if dropna is True:
@@ -248,9 +275,10 @@ class ChpaAnalyzer(pd.DataFrame):
         self,
         column: str,
         query_str: str = "ilevel_0 in ilevel_0",
+        col_others: Union[int, None] = None,
         is_formatted: bool = False,
     ) -> pd.DataFrame:
-        """根据分析目标字段返回透视后的kpi表格，包括以分析目标字段breakout出的各个项目的Rank(变化), MAT金额, 净增长, 份额, 份额变化以及EI
+        """根据分析目标字段返回透视后的kpi表格，包括以分析目标字段breakout出的各个项目的Rank(变化), 滚动年金额, 净增长, 份额, 份额变化以及EI
 
         Parameters
         ----------
@@ -258,6 +286,8 @@ class ChpaAnalyzer(pd.DataFrame):
             分析目标字段，如TC, MOLECULE, PRODUCT, CORPORATION等
         query_str: str, optional
             筛选的数据范围，类似sql写法, by default "ilevel_0 in ilevel_0"
+        col_others: Union[int, None], optional
+            如非None, 把排序后column系数大于此的项目合并为"其他"
         is_formatted : bool, by default False
             是否格式化数值
 
@@ -272,9 +302,12 @@ class ChpaAnalyzer(pd.DataFrame):
             columns=column,
             values=self.value_column,
             query_str=query_str,
+            col_others=col_others,
+            sort_values="by_last_row",
+            ascending=False,
         )
 
-        pivoted = pivoted.sort_values(by=pivoted.index[-1], ascending=False, axis=1)
+        # pivoted = pivoted.sort_values(by=pivoted.index[-1], ascending=False, axis=1)
         sr_mat = pivoted.iloc[-1, :]
         sr_ya = pivoted.iloc[-5, :]
         rank_diff = sr_ya.rank(ascending=False) - sr_mat.rank(
@@ -287,13 +320,13 @@ class ChpaAnalyzer(pd.DataFrame):
             + ")"
         )  # 组合排名字符串，排名变化在最新排名后的括号内呈现
         df_kpi = pd.DataFrame(sr_rank, columns=["Rank"])
-        df_kpi["MAT金额"] = pivoted.iloc[-1, :]
-        df_kpi["净增长"] = df_kpi["MAT金额"].subtract(sr_ya)
-        df_kpi["增长率"] = df_kpi["MAT金额"].div(sr_ya) - 1
-        df_kpi["份额"] = df_kpi["MAT金额"] / df_kpi["MAT金额"].sum()
+        df_kpi["滚动年金额"] = pivoted.iloc[-1, :]
+        df_kpi["净增长"] = df_kpi["滚动年金额"].subtract(sr_ya)
+        df_kpi["增长率"] = df_kpi["滚动年金额"].div(sr_ya) - 1
+        df_kpi["份额"] = df_kpi["滚动年金额"] / df_kpi["滚动年金额"].sum()
         df_kpi["份额变化"] = df_kpi["份额"] - sr_ya / sr_ya.sum()
         df_kpi["EI"] = (
-            (df_kpi["增长率"] + 1) / (df_kpi["MAT金额"].sum() / sr_ya.sum()) * 100
+            (df_kpi["增长率"] + 1) / (df_kpi["滚动年金额"].sum() / sr_ya.sum()) * 100
         )  # EI代表该项目增速和整体增速的关系，高于100及快于整体平均
 
         if is_formatted:

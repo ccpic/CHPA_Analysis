@@ -112,7 +112,7 @@ class ChpaPPT(object):
 
         print("Page%s" % str(int(self.prs.slides.index(slide)) + 1))
 
-    def add_img_slide(
+    def add_slide(
         self,
         title: str = "",
         layout_style: int = 0,
@@ -275,6 +275,7 @@ class ChpaPPT(object):
         left: Union[float, Inches, Cm] = None,
         width: Union[float, Inches, Cm] = None,
         height: Union[float, Inches, Cm] = Cm(10),
+        table_style_id: str = "{5940675A-B579-460E-94D1-54222C63F5DA}",
         font_size: Pt = Pt(11),
         cells_color: dict = None,
         fonts_color: dict = None,
@@ -299,6 +300,8 @@ class ChpaPPT(object):
             表格宽度，如为None默认为幻灯片宽度, by default None
         height : Union[float, Inches, Cm], optional
             图片高度, by default Cm(10)
+        table_style_id : str, optional
+            微软内置表格样式id, 默认为NoStyleTableGrid, by default "{5940675A-B579-460E-94D1-54222C63F5DA}"
         font_size : Pt, optional
             字体大小, by default Pt(11)
         cells_color : dict, optional
@@ -351,7 +354,7 @@ class ChpaPPT(object):
         tbl_pr = shape_table._element.graphic.graphicData.tbl
         tbl_pr[0][
             -1
-        ].text = "{5940675A-B579-460E-94D1-54222C63F5DA}"  # 微软内置的样式id"NoStyleTableGrid"
+        ].text = table_style_id
 
         # 单元格颜色
         if cells_color is not None:
