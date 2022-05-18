@@ -30,7 +30,8 @@ if __name__ == "__main__":
     df["PRODUCT_MOLECULE"] = df["PRODUCT"] + "(" + df["MOLECULE"] + ")"
     df["CORPORATION"] = df["CORPORATION"].str.split("|").str[0]
 
-    c = ChpaAnalyzer(data=df, name="CV领域")
+    market = "CV领域"
+    c = ChpaAnalyzer(data=df, name=market)
     p = ChpaPPT(analyzer=c, template_path="template.pptx", save_path="corp.pptx")
 
     # CV领域定义市场整体趋势
@@ -51,10 +52,10 @@ if __name__ == "__main__":
         fontsize=10,
         data_line=market_gr,
         fmt_line=["{:,.1%}"],
-        style={"title": "CV领域定义市场整体趋势", "xlabel_rotation": 90},
+        style={"title": f"{market}定义市场整体趋势", "xlabel_rotation": 90},
     )
 
-    p.add_slide(title="CV领域定义市场整体趋势")
+    p.add_slide(title=f"{market}定义市场整体趋势")
     p.add_image(f.plot(), height=Cm(13))
 
     # 所有公司气泡图
@@ -72,13 +73,13 @@ if __name__ == "__main__":
         data=corp_kpi.loc[:, ["滚动年金额", "净增长", "滚动年金额"]],
         fontsize=10,
         style={
-            "title": "CV领域所有企业表现 滚动年金额 vs. 净增长",
+            "title": f"{market}所有企业表现 滚动年金额 vs. 净增长",
             "xlabel": "滚动年金额(百万元)",
             "ylabel": "滚动年金额净增长(百万元)",
         },
     )
 
-    p.add_slide(title="CV领域所有企业表现 滚动年金额 vs. 净增长")
+    p.add_slide(title=f"{market}所有企业表现 滚动年金额 vs. 净增长")
     p.add_image(
         f.plot(label_limit=30, x_fmt="{:,.0f}", y_fmt="{:+,.0f}", y_avg=0),
         width=Cm(30),
@@ -87,102 +88,108 @@ if __name__ == "__main__":
 
     # Top规模公司表格页
     corp_kpi = c.get_kpi("CORPORATION", is_formatted=True)
+    corp_kpi = corp_kpi.rename({"滚动年金额": "滚动年金额\n(百万元)", "净增长": "净增长\n(百万元)"}, axis=1)
+
     product_number = c.get_pivot(
         index="CORPORATION", values="PRODUCT", aggfunc=lambda x: len(x.unique())
     )  # 添加CV领域产品数量统计
-    product_number.columns = ["CV领域产品数量"]
+    product_number.columns = [f"{market}产品数量"]
     corp_kpi = pd.concat([corp_kpi, product_number], axis=1)
 
-    p.add_slide(title="CV领域Top1-15企业排名及表现明细 最新滚动年- 金额")
+    p.add_slide(title=f"{market}Top1-15企业排名及表现明细 最新滚动年- 金额")
     p.add_table(
         corp_kpi.iloc[:15, :],
+        top = Cm(4),
         width=Cm(30),
         font_size=Pt(9),
         table_style_id="{9D7B26C5-4107-4FEC-AEDC-1716B250A1EF}",
+        col_width={0:Cm(5)}
     )
 
-    p.add_slide(title="CV领域Top16-30企业排名及表现明细 最新滚动年- 金额")
+    p.add_slide(title=f"{market}Top16-30企业排名及表现明细 最新滚动年- 金额")
     p.add_table(
         corp_kpi.iloc[15:30, :],
+        top = Cm(4),
         width=Cm(30),
         font_size=Pt(9),
         table_style_id="{9D7B26C5-4107-4FEC-AEDC-1716B250A1EF}",
+        col_width={0:Cm(5)}
     )
 
-    # 循环处理Top30公司的表现
-    for i, idx in enumerate(corp_kpi.head(30).index):
-        rank = i + 1
+    # # 循环处理Top30公司的表现
+    # for i, idx in enumerate(corp_kpi.head(30).index):
+    #     rank = i + 1
 
-        # 添加产品表现趋势页
-        df_product = c.get_pivot(
-            index="DATE",
-            columns="PRODUCT_MOLECULE",
-            query_str=f"CORPORATION == '{idx}'",
-            sort_values="by_last_row",
-            ascending=False,
-            col_others=10,
-        )
-        df_product.index = df_product.index.astype(str)
+    #     # 添加产品表现趋势页
+    #     df_product = c.get_pivot(
+    #         index="DATE",
+    #         columns="PRODUCT_MOLECULE",
+    #         query_str=f"CORPORATION == '{idx}'",
+    #         sort_values="by_last_row",
+    #         ascending=False,
+    #         col_others=10,
+    #     )
+    #     df_product.index = df_product.index.astype(str)
 
-        f = plt.figure(
-            width=14,
-            height=7,
-            FigureClass=PlotStackedBarPlus,
-            gs=None,
-            fmt=["{:,.0f}"],
-            savepath=c.save_path,
-            data=df_product.iloc[[-13, -9, -5, -1], :],
-            fontsize=12,
-            style={
-                "title": f"{idx}产品组合表现趋势 - 滚动年 - 金额",
-                "ylabel": "滚动年金额(百万元)",
-            },
-        )
+    #     f = plt.figure(
+    #         width=14,
+    #         height=7,
+    #         FigureClass=PlotStackedBarPlus,
+    #         gs=None,
+    #         fmt=["{:,.0f}"],
+    #         savepath=c.save_path,
+    #         data=df_product.iloc[[-13, -9, -5, -1], :],
+    #         fontsize=12,
+    #         style={
+    #             "title": f"{idx}产品组合表现趋势 - 滚动年 - 金额",
+    #             "ylabel": "滚动年金额(百万元)",
+    #         },
+    #     )
 
-        p.add_slide(title=f"Top{rank} - {idx} - 产品组合表现趋势 - 滚动年 - 金额")
-        p.add_image(f.plot(), height=Cm(13))
+    #     p.add_slide(title=f"Top{rank} - {idx} - 产品组合表现趋势 - 滚动年 - 金额")
+    #     p.add_image(f.plot(), height=Cm(13))
 
-        # 添加产品净增长贡献页
-        product_kpi = c.get_kpi(
-            "PRODUCT_MOLECULE",
-            query_str=f"CORPORATION == '{idx}'",
-            is_formatted=False,
-            col_others=10,
-        )
+    #     # 添加产品净增长贡献页
+    #     product_kpi = c.get_kpi(
+    #         "PRODUCT_MOLECULE",
+    #         query_str=f"CORPORATION == '{idx}'",
+    #         is_formatted=False,
+    #         col_others=10,
+    #     )
 
-        product_kpi["净增长绝对值"] = product_kpi["净增长"].abs()
-        product_kpi.sort_values(by="净增长绝对值", ascending=False, inplace=True)
-        title = f"{idx}产品组合最新同比净增长贡献 - 滚动年 - 金额"
+    #     product_kpi["净增长绝对值"] = product_kpi["净增长"].abs()
+    #     product_kpi.sort_values(by="净增长绝对值", ascending=False, inplace=True)
+    #     title = f"{idx}产品组合最新同比净增长贡献 - 滚动年 - 金额"
 
-        value_pre = (
-            c.get_pivot(
-                "DATE", query_str=f"CORPORATION == '{idx}' and DATE == '2020-12-01'"
-            )
-            .sum()
-            .values[0]
-        )
+    #     value_pre = (
+    #         c.get_pivot(
+    #             "DATE", query_str=f"CORPORATION == '{idx}' and DATE == '2020-12-01'"
+    #         )
+    #         .sum()
+    #         .values[0]
+    #     )
 
-        f = plt.figure(
-            width=14,
-            height=7,
-            FigureClass=PlotWaterfall,
-            gs=None,
-            fmt=["{:,.0f}"],
-            savepath=c.save_path,
-            data=product_kpi.loc[:, ["净增长"]],
-            fontsize=12,
-            style={
-                "title": title,
-                "xlabel_rotation": 90,
-                "remove_yticks": True,
-                "ylabel": "滚动年金额净增长(百万元)",
-            },
-        )
+    #     f = plt.figure(
+    #         width=14,
+    #         height=7,
+    #         FigureClass=PlotWaterfall,
+    #         gs=None,
+    #         fmt=["{:,.0f}"],
+    #         savepath=c.save_path,
+    #         data=product_kpi.loc[:, ["净增长"]],
+    #         fontsize=12,
+    #         style={
+    #             "title": title,
+    #             "xlabel_rotation": 90,
+    #             "remove_yticks": True,
+    #             "ylabel": "滚动年金额净增长(百万元)",
+    #         },
+    #     )
 
-        p.add_slide(title=f"Top{rank} - {idx} - 产品组合最新同比净增长贡献 - 滚动年 - 金额")
-        p.add_image(
-            f.plot(pre=[("2020", value_pre)], net_index="2021"),
-            height=Cm(13),
-        )
+    #     p.add_slide(title=f"Top{rank} - {idx} - 产品组合最新同比净增长贡献 - 滚动年 - 金额")
+    #     p.add_image(
+    #         f.plot(pre=[("2020", value_pre)], net_index="2021"),
+    #         height=Cm(13),
+    #     )
 
     p.save()

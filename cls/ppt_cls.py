@@ -280,6 +280,7 @@ class ChpaPPT(object):
         cells_color: dict = None,
         fonts_color: dict = None,
         merge_cells: Tuple[Tuple, Tuple] = None,
+        col_width: dict = None,
     ) -> table:
 
         """在当前（最新幻灯页）插入数据表格
@@ -316,6 +317,11 @@ class ChpaPPT(object):
             表格特定单元格合并，包含2个参数的tuple, by default None
             参数1: 要合并的最左上的单元格x,y的tuple
             参数2: 要合并的最右下的单元格x,y的tuple
+        col_width: dict = None, optional
+            指定列的宽度，参数为一个字典：
+            key: 指定要调整宽度列的索引
+            value: 指定列的宽度
+            剩余列宽自动调整
         Returns
         -------
         table
@@ -352,9 +358,7 @@ class ChpaPPT(object):
 
         # 表格总样式
         tbl_pr = shape_table._element.graphic.graphicData.tbl
-        tbl_pr[0][
-            -1
-        ].text = table_style_id
+        tbl_pr[0][-1].text = table_style_id
 
         # 单元格颜色
         if cells_color is not None:
@@ -385,10 +389,19 @@ class ChpaPPT(object):
                     obj_table.cell(cell2_row, cell2_col)
                 )  # 根据指定左上和右下的单元格merge
 
+        # 默认表格居中
         if left is None:
-            shape_table.left = int(
-                (self.prs.slide_width - shape_table.width) / 2
-            )  # 默认表格居中
+            shape_table.left = int((self.prs.slide_width - shape_table.width) / 2)
+
+        # 设定列宽
+        other_width = int(
+            (shape_table.width - sum(col_width.values())) / (len(obj_table.columns) -len(col_width))
+        )
+        for j in range(len(obj_table.columns)):
+            if j in col_width:
+                obj_table.columns[j].width = col_width[j]
+            else:
+                obj_table.columns[j].width = other_width
 
         return shape_table
 
@@ -427,7 +440,9 @@ class ChpaPPT(object):
             image_file=img_path,
             top=top,
             left=left if left is not None else 0,
-            width=width if width is not None or height is not None else self.prs.slide_width,
+            width=width
+            if width is not None or height is not None
+            else self.prs.slide_width,
             height=height,
         )
         if left is None and height is not None:
