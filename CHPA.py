@@ -165,8 +165,39 @@ d_region2 = {
 }
 
 color_dict = {
-    '马来酸依那普利叶酸片（AU3）':"grey",
+    "阿齐沙坦":"saddlebrown",
+    'β受体阻断剂':"teal",
+    "MRA":"olivedrab",
+    'RAAS平片(ARB+ACEI)':"crimson",
+    "螺内酯":"navy",
+    "非奈利酮":"crimson",
+    "恒格列净": "darkgreen",
+    "伊伐布雷定": "navy",
+    "美托洛尔": "navy",
+    "艾司洛尔": "crimson",
+    "比索洛尔": "darkorange",
+    "阿罗洛尔": "darkgreen",
+    "拉贝洛尔": "olivedrab",
+    "DA FEN GAI (SZA)": "darkgreen",
+    "二甲双胍": "navy",
+    "DPP4": "crimson",
+    "SGLT2": "darkorange",
+    "GLP-1": "darkgreen",
+    "α糖苷酶抑制剂": "olivedrab",
+    "磺脲类": "purple",
+    "格列奈类": "violet",
+    "TZD": "saddlebrown",
+    "TZD & PPAR全激动剂": "saddlebrown",
+    "V03B 中药和中成药": "darkorange",
+    "依折麦布": "crimson",
+    "艾普拉唑": "crimson",
+    "硝苯地平缓释片": "crimson",
+    "集采品种": "grey",
+    "其他非集采品种": "purple",
+    "美阿沙坦": "gold",
+    "马来酸依那普利叶酸片（AU3）": "grey",
     "诺欣妥（NVU）": "violet",
+    "ENTRESTO (NVR)": "violet",
     "缬克（JC4）": "purple",
     "兰沙（BW.）": "darkgreen",
     "沙库巴曲缬沙坦": "violet",
@@ -184,22 +215,39 @@ color_dict = {
     "恩格列净": "crimson",
     "达格列净": "teal",
     "埃格列净": "darkorange",
-    "比索洛尔": "navy",
+    # "比索洛尔": "navy",
     "美托洛尔缓释剂型": "crimson",
+    "美托洛尔缓释片": "crimson",
     "美托洛尔常释剂型": "teal",
-    "阿罗洛尔": "darkorange",
+    # "阿罗洛尔": "darkorange",
     "地舒单抗": "deepskyblue",
     "带量品种": "crimson",
     "非带量品种": "teal",
+    "美阿沙坦钾片": "pink",
+    "VBP品种": "crimson",
+    "非VBP品种": "teal",
     "拜阿司匹灵": "navy",
+    "BAYASPIRIN (BAY)": "navy",
     "波立维": "crimson",
+    "PLAVIX (SG9)": "crimson",
+    "ELCITONIN (ASC)": "gold",
+    "ALENDRONATE SODIUM (S1H)": "saddlebrown",
+    "Others": "grey",
     "泰嘉": "darkgreen",
+    "TALCOM (SI6)": "teal",
+    "CLOPIDOGREL BISULF (HDO)": "pink",
+    "SHUAI XIN/SHUAI TAI (LUU)": "darkgreen",
+    "YOU LI WEI (NJ2)": "gold",
+    "PLAGRIL (DRL)": "deepskyblue",
     "泰仪": "olivedrab",
     "帅信": "darkgreen",
+    "SHUAI XIN (LUU)": "darkgreen",
+    "SHUAI TAI (LUU)": "olivedrab",
     "帅泰": "olivedrab",
     "帅信/帅泰": "saddlebrown",
     "硫酸氢氯吡格雷片": "saddlebrown",
     "倍林达": "darkorange",
+    "BRILINTA (AZN)": "darkorange",
     "阿司匹林": "navy",
     "氯吡格雷": "teal",
     "吲哚布芬": "crimson",
@@ -272,6 +320,7 @@ color_dict = {
     "RAAS FDC": "darkorange",
     "厄贝沙坦": "navy",
     "缬沙坦": "crimson",
+    "缬沙坦氢氯噻嗪": "pink",
     "缬沙坦,氨氯地平": "maroon",
     "缬沙坦氨氯地平": "maroon",
     "贝那普利,氨氯地平": "salmon",
@@ -289,22 +338,30 @@ color_dict = {
     "代文": "navy",
     "代文（NVR）": "navy",
     "代文（NVU）": "navy",
+    "DIOVAN (NVR)": "navy",
     "洛汀新": "olivedrab",
     "洛汀新（NBJ）": "olivedrab",
     "洛汀新（NVU）": "olivedrab",
+    "LOTENSIN (NBJ)": "olivedrab",
     "科素亚": "darkorange",
     "科素亚（MHU）": "darkorange",
     "科素亚（MSG）": "darkorange",
+    "COZAAR (ORG)": "darkorange",
     "安博维": "crimson",
     "安博维（SG9）": "crimson",
     "安博维（SA9）": "crimson",
-    "安博诺（SA9）":"pink",
+    "APROVEL (SG9)": "crimson",
+    "安博诺（SA9）": "pink",
+    "COAPROVEL (SG9)": "pink",
+    "VALSARTAN (QJX)": "pink",
     "雅施达": "saddlebrown",
     "雅施达（TSV）": "saddlebrown",
     "雅施达（SVU）": "saddlebrown",
     "百安新": "darkgreen",
     "百安新（YAZ）": "darkgreen",
+    "BAI AN XIN (GRU)": "darkgreen",
     "倍博特（NVU）": "maroon",
+    "EXFORGE (NVR)": "maroon",
     "倍博特": "maroon",
     "傲坦": "deepskyblue",
     "美卡素": "purple",
@@ -312,28 +369,40 @@ color_dict = {
     "必洛斯": "darkgreen",
     "信立坦": "teal",
     "信立坦（SI6）": "teal",
+    "XIN LI TAN (SI6)": "teal",
     "倍悦": "purple",
     "倍悦（ZJ5）": "purple",
-    '复傲坦（DCG）': "deepskyblue",
+    "BEI YUE (ZJ5)": "purple",
+    "复傲坦（DCG）": "deepskyblue",
     "缓宁": "gold",
     "安来": "gold",
     "安来（ZJ5）": "gold",
+    "AN LAI (ZJ5)": "gold",
     "搏力高": "mediumslateblue",
     "搏力高（ZYG）": "mediumslateblue",
     "平欣": "mediumslateblue",
+    "XIE AN ZHI (ZHU)": "mediumslateblue",
     "依苏": "coral",
+    "YI SU (JJJ)": "coral",
+    "YI YE (AU3)": "coral",
     "科苏": "darkgreen",
     "穗悦": "olivedrab",
+    "XIE KE (JC4)": "navy",
+    "AMLODIPINE BESYLAT (S5O)": "olivedrab",
     "迪之雅": "olive",
     "伊达力": "olive",
     "伊达力（ZUP）": "olive",
     "伊达力（ZHI）": "olive",
+    "YI DA LI (ZUP)": "olive",
     "兰沙": "c",
+    "LAN SHA (BW.)": "c",
     "倍怡": "pink",
     "倍怡（ZJ5）": "pink",
+    "BEI YI (ZJ5)": "pink",
     "吉加": "orchid",
     "吉加（JSH）": "orchid",
     "吉加（H9R）": "orchid",
+    "JI JIA (JSH)": "orchid",
     "卡托普利片": "grey",
     "华法林": "darkorange",
     "利伐沙班": "rebeccapurple",
@@ -442,6 +511,7 @@ color_dict = {
     "伊疏（S.I）": "saddlebrown",
     "普罗力（AAI）": "pink",
     "普罗力": "pink",
+    "PROLIA (AAI)": "pink",
     "唑来膦酸注射液": "navy",
     "鲑鱼降钙素": "crimson",
     "鲑降钙素": "crimson",
@@ -456,32 +526,44 @@ color_dict = {
     "密固达": "navy",
     "密固达（NVR）": "navy",
     "密固达（NVU）": "navy",
+    "ACLASTA (NVR)": "navy",
     "欣复泰": "teal",
     "欣复泰（XIL）": "teal",
+    "XIN FU TAI (XIL)": "teal",
+    "RISEDRONATE SODIUM (YKJ)": "coral",
     "依固": "crimson",
     "依固（CTA）": "crimson",
     "依固（C2T）": "crimson",
+    "YI GU (CTA)": "crimson",
     "密盖息": "darkorange",
     "密盖息（NVR）": "darkorange",
     "密盖息（NVU）": "darkorange",
+    "MIACALCIC (NVR)": "darkorange",
     "福美加": "darkgreen",
     "福美加（MSD）": "darkgreen",
     "福美加（MSG）": "darkgreen",
+    "FOSAMAX PLUS (ORG)": "darkgreen",
     "福善美": "olivedrab",
     "福善美（MSD）": "olivedrab",
     "福善美（MSG）": "olivedrab",
+    "FOSAMAX (ORG)": "olivedrab",
     "金尔力": "purple",
     "金尔力（B-Y）": "purple",
+    "JIN ER LI (B-Y)": "purple",
     "斯迪诺": "saddlebrown",
+    "SI DI NUO (S-Y)": "saddlebrown",
     "利塞膦酸钠片": "gold",
     "利塞膦酸钠片（YKJ）": "gold",
+    "KE MI GU (SK4)": "gold",
     "益盖宁": "teal",
     "斯迪诺（S-Y）": "teal",
     "斯迪诺（LU6）": "teal",
     "复泰奥": "deepskyblue",
     "复泰奥（LYG）": "deepskyblue",
+    "FORSTEO (LLY)": "deepskyblue",
     "珍固": "crimson",
     "珍固（S60）": "crimson",
+    "ZHEN GU (S60)": "crimson",
     "益盖宁（ASC）": "pink",
     "唑来膦酸注射液（SK4）": "saddlebrown",
     "唑来膦酸注射液（KEU）": "saddlebrown",
@@ -514,6 +596,7 @@ color_dict = {
     "雷米普利": "deepskyblue",
     "傲坦（DSC）": "navy",
     "傲坦（DCG）": "navy",
+    "OLMETEC PLUS (DSC)": "navy",
     "兰沙（B4W）": "crimson",
     "希佳（NJ2）": "darkorange",
     "希佳（C2T）": "darkorange",
@@ -527,7 +610,9 @@ color_dict = {
     "250MG": "navy",
     "500MG": "crimson",
     "恩存": "deepskyblue",
+    "EN CUN (S1H)": "deepskyblue",
     "托平（ZHT）": "deepskyblue",
+    "TUO PING (ZHT)": "deepskyblue",
     "诺欣妥": "crimson",
     "口服片剂": "navy",
     "口服溶液": "deepskyblue",
@@ -570,7 +655,7 @@ color_list = [
     "cornflowerblue",
     "magenta",
 ]
-
+iter_colors = iter(color_list)
 d_rename = {
     "CLASS": "治疗大类",
     "硫酸氢氯吡格雷片": "帅信/帅泰",
@@ -584,8 +669,8 @@ d_rename = {
     "STRENGTH": "剂量规格",
     "FORMULATION": "剂型",
     "CITY": "城市",
-    "VBP": "是否带量",
-    "VBP_STATUS": "集采中标情况",
+    "VBP": "是否VBP",
+    "VBP_STATUS": "VBP中标情况",
     "TIER": "城市层级",
     "REGION1": "大区",
     "REGION2": "区域",
@@ -2035,12 +2120,10 @@ class chpa(pd.DataFrame):
             df2 = df2.append(others)
 
             if column is not None:
-                found = df2.index.str.contains(column)
-                print(found)
-                if sum(found) == 0:
+                print(column in df2.index.values)
+                if column not in df2.index.values:
                     df2 = df2.append(df.loc[column, :])
-                    print(df2)
-                    df2.loc["其他", :] = df2.loc["其他", :] - df2.loc[column, :]
+                    df2.loc["其他", :] = df2.loc["其他", :].subtract(df2.loc[column, :])
         else:
             df2 = df
 
@@ -2091,19 +2174,27 @@ class chpa(pd.DataFrame):
                     color = color_dict[col]
                 else:
                     color = color_list[i]
-                ax.bar(index, df.loc[index, col], width=0.5, color=color, bottom=bottom)
-                plt.text(
+                ax.bar(
                     index,
-                    bottom + df.loc[index, col] / 2,
-                    "{:,.0f}".format(df.loc[index, col])
-                    + "("
-                    + "{:.1%}".format(df_share.loc[index, col])
-                    + ")",
-                    color="white",
-                    va="center",
-                    ha="center",
-                    fontsize=12,
+                    df.loc[index, col],
+                    width=0.5,
+                    color=color,
+                    bottom=bottom,
+                    label=col,
                 )
+                if df_share.loc[index, col] > 0.001:
+                    plt.text(
+                        index,
+                        bottom + df.loc[index, col] / 2,
+                        "{:,.0f}".format(df.loc[index, col])
+                        + "("
+                        + "{:.1%}".format(df_share.loc[index, col])
+                        + ")",
+                        color="white",
+                        va="center",
+                        ha="center",
+                        fontsize=12,
+                    )
                 bottom += df.loc[index, col]
 
         hindex = 1.03
@@ -2131,42 +2222,45 @@ class chpa(pd.DataFrame):
         bottom4 = 0
         bbox_props = None
         for i, column in enumerate(df_gr):
-            ax.annotate(
-                "{:+.1%}".format(df_gr.iloc[1, i]),
-                xy=(
-                    0.5,
-                    (bottom1 + bottom2 + df.iloc[0, i] / 2 + df.iloc[1, i] / 2) / 2,
-                ),
-                ha="center",
-                va="center",
-                color=color_dict[column],
-                fontsize=14,
-                bbox=bbox_props,
-            )
-            ax.annotate(
-                "{:+.1%}".format(df_gr.iloc[2, i]),
-                xy=(
-                    1.5,
-                    (bottom2 + bottom3 + df.iloc[1, i] / 2 + df.iloc[2, i] / 2) / 2,
-                ),
-                ha="center",
-                va="center",
-                color=color_dict[column],
-                fontsize=14,
-                bbox=bbox_props,
-            )
-            ax.annotate(
-                "{:+.1%}".format(df_gr.iloc[3, i]),
-                xy=(
-                    2.5,
-                    (bottom3 + bottom4 + df.iloc[2, i] / 2 + df.iloc[3, i] / 2) / 2,
-                ),
-                ha="center",
-                va="center",
-                color=color_dict[column],
-                fontsize=14,
-                bbox=bbox_props,
-            )
+            if math.isnan(df_gr.iloc[1, i]) is False:
+                ax.annotate(
+                    "{:+.1%}".format(df_gr.iloc[1, i]),
+                    xy=(
+                        0.5,
+                        (bottom1 + bottom2 + df.iloc[0, i] / 2 + df.iloc[1, i] / 2) / 2,
+                    ),
+                    ha="center",
+                    va="center",
+                    color=color_dict[column],
+                    fontsize=14,
+                    bbox=bbox_props,
+                )
+            if math.isnan(df_gr.iloc[2, i]) is False:
+                ax.annotate(
+                    "{:+.1%}".format(df_gr.iloc[2, i]),
+                    xy=(
+                        1.5,
+                        (bottom2 + bottom3 + df.iloc[1, i] / 2 + df.iloc[2, i] / 2) / 2,
+                    ),
+                    ha="center",
+                    va="center",
+                    color=color_dict[column],
+                    fontsize=14,
+                    bbox=bbox_props,
+                )
+            if math.isnan(df_gr.iloc[3, i]) is False:
+                ax.annotate(
+                    "{:+.1%}".format(df_gr.iloc[3, i]),
+                    xy=(
+                        2.5,
+                        (bottom3 + bottom4 + df.iloc[2, i] / 2 + df.iloc[3, i] / 2) / 2,
+                    ),
+                    ha="center",
+                    va="center",
+                    color=color_dict[column],
+                    fontsize=14,
+                    bbox=bbox_props,
+                )
             bottom1 += df.iloc[0, i]
             bottom2 += df.iloc[1, i]
             bottom3 += df.iloc[2, i]
@@ -2205,17 +2299,23 @@ class chpa(pd.DataFrame):
 
         box = ax.get_position()
         ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+        handles, labels = ax.get_legend_handles_labels()
+        by_label = dict(
+            zip(
+                labels[::-1],
+                handles[::-1],
+            )
+        )  # 和下放调用.values()/.keys()配合去除重复的图例，顺便倒序让图例与图表保持一致
         ax.legend(
-            df.columns,
+            by_label.values(),
+            by_label.keys(),
             loc="center left",
+            ncol=1,
             bbox_to_anchor=(1, 0.5),
             labelspacing=1,
             frameon=False,
             prop={"family": "SimHei", "size": 12},
         )
-
-        # bars, labels = ax.get_legend_handles_labels()
-        # plt.legend(bars[::-1], labels[::-1], loc="center left", bbox_to_anchor=(1.0, 0.5))
 
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
@@ -2306,7 +2406,7 @@ class chpa(pd.DataFrame):
         )
 
         suffix = ""
-        print(df)
+        df.to_excel(f"data_anemia_{unit}.xlsx")
         if cycle == "Annual":
             df = df.iloc[[-13, -9, -5, -1], :]
             df_share = df_share.iloc[[-13, -9, -5, -1], :]
@@ -2322,6 +2422,10 @@ class chpa(pd.DataFrame):
             df = df.reindex(sorter, axis=1)
             df_share = df_share.reindex(sorter, axis=1)
             df_gr = df_gr.reindex(sorter, axis=1)
+        else:
+            df.sort_values(axis=1, by=df.index[-1], ascending=False, inplace=True)
+            df_share = df_share.reindex(df.columns, axis=1)
+            df_gr = df_gr.reindex(df.columns, axis=1)
 
         title = self.name + "分" + d_rename[dimension] + d_rename[unit] + suffix
         ytitle = d_rename[unit]
@@ -2844,6 +2948,10 @@ class chpa(pd.DataFrame):
             has_total=False,
             unit=unit,
             period=period,
+        )
+
+        df_share.sort_values(
+            by=df_share.index[-1], axis=1, ascending=False, inplace=True
         )
 
         if show_list is not None:
@@ -3401,7 +3509,7 @@ def rand_cmap(
             ticks=None,
             boundaries=bounds,
             format="%1i",
-            orientation=u"horizontal",
+            orientation="horizontal",
         )
 
     return random_colormap

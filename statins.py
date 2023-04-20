@@ -6,18 +6,21 @@ condition = "[TC IV] = 'C10A1 STATINS (HMG-COA RED)|他汀类(HMG-COA（羟-甲�
 sql = "SELECT * FROM " + table_name + " WHERE " + condition
 df = pd.read_sql(sql=sql, con=engine)
 
-df["MOLECULE"] = df["MOLECULE"].str.split("|").str[0]
-df["PRODUCT"] = (
-    df["PRODUCT"].str.split("|").str[0]
-    + "（"
-    + df["PRODUCT"].str.split("|").str[1].str[-3:]
-    + "）"
-)
-df["PRODUCT_CORP"] = (
-    df["PRODUCT_CORP"].str.split("（").str[0].str.split("|").str[0]
-    + "\n"
-    + df["PRODUCT_CORP"].str.split("（").str[1].str.split("|").str[0]
-)
+df["STRENGTH"] = df["PACKAGE"].apply(lambda x: x.split()[-2])
+df["MOLECULE"] = df["MOLECULE"].str.split("|").str[1]
+df["PRODUCT"] = df["PRODUCT"].apply(lambda x: x[:-3].strip() + " (" + x[-3:] + ")")
+# df["PRODUCT"] = (
+#     df["PRODUCT"].str.split("|").str[0]
+#     + "（"
+#     + df["PRODUCT"].str.split("|").str[1].str[-3:]
+#     + "）"
+# )
+# df["PRODUCT_CORP"] = (
+#     df["PRODUCT_CORP"].str.split("（").str[0].str.split("|").str[0]
+#     + "\n"
+#     + df["PRODUCT_CORP"].str.split("（").str[1].str.split("|").str[0]
+# )
+
 mask = df["MOLECULE"] == "匹伐他汀钙片"
 df.loc[mask, "MOLECULE"] = "匹伐他汀"
 
@@ -91,14 +94,14 @@ convert_std_volume(df, "MOLECULE", "洛伐他汀", "10MG", 0.5)
 
 r = chpa(df, name="他汀市场")
 
-# r.plot_overall_performance(
-#     dimension="MOLECULE", sorter=["阿托伐他汀", "瑞舒伐他汀", "匹伐他汀", "辛伐他汀", "氟伐他汀", "普伐他汀"]
-# )
-# r.plot_overall_performance(
-#     dimension="MOLECULE",
-#     unit="Volume (Std Counting Unit)",
-#     sorter=["阿托伐他汀", "瑞舒伐他汀", "匹伐他汀", "辛伐他汀", "氟伐他汀", "普伐他汀"],
-# )
+r.plot_overall_performance(
+    dimension="MOLECULE", sorter=["阿托伐他汀", "瑞舒伐他汀", "匹伐他汀", "辛伐他汀", "氟伐他汀", "普伐他汀"]
+)
+r.plot_overall_performance(
+    dimension="MOLECULE",
+    unit="Volume (Std Counting Unit)",
+    sorter=["阿托伐他汀", "瑞舒伐他汀", "匹伐他汀", "辛伐他汀", "氟伐他汀", "普伐他汀"],
+)
 
 # r.plot_overall_performance(dimension="VBP")
 # r.plot_overall_performance(dimension="VBP", unit="Volume (Std Counting Unit)")
@@ -293,18 +296,18 @@ r = chpa(df, name="他汀市场")
 # )
 
 
-df = df[df["MOLECULE"] == "瑞舒伐他汀"]
+# df = df[df["MOLECULE"] == "瑞舒伐他汀"]
 
-mask = (
-    df["PRODUCT"].isin(
-        ["瑞舒伐他汀（NVU）", "瑞舒伐他汀钙片（ZHI）", "瑞舒伐他汀（C2T）", "可定（A5Z）", "京诺（ZXJ）"]
-    )
-    == False
-)
+# mask = (
+#     df["PRODUCT"].isin(
+#         ["瑞舒伐他汀（NVU）", "瑞舒伐他汀钙片（ZHI）", "瑞舒伐他汀（C2T）", "可定（A5Z）", "京诺（ZXJ）"]
+#     )
+#     == False
+# )
 
-df.loc[mask, "PRODUCT"] = "其他"
+# df.loc[mask, "PRODUCT"] = "其他"
 
-r = chpa(df, name="瑞舒伐他汀市场")
+# r = chpa(df, name="瑞舒伐他汀市场")
 
 # r.plot_overall_performance(
 #     dimension="VBP_STATUS",

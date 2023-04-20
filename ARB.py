@@ -15,10 +15,10 @@ condition_raasi_plain = (
 )
 
 # RAAS单方市场+ARNI
-condition_raasi_plain = (
+condition_raasi_plain_arni = (
     "[TC III] in ('C09A ACE INHIBITORS PLAIN|血管紧张素转换酶抑制剂，单一用药' ,"
     "'C09C ANGIOTENS-II ANTAG, PLAIN|血管紧张素II拮抗剂，单一用药')"
-    " or MOLECULE = '沙库巴曲缬沙坦|SACUBITRIL+VALSARTAN'"
+    " or MOLECULE = 'SACUBITRIL+VALSARTAN|沙库巴曲缬沙坦'"
 )
 
 # RAAS市场除沙库巴曲缬沙坦
@@ -46,7 +46,7 @@ condition_raasi = (
 #             "'C08 CALCIUM ANTAGONISTS|钙离子拮抗剂', " \
 #             "'C09 RENIN-ANGIOTEN SYST AGENT|作用于肾素-血管紧张素系统的药物')"
 
-condition = condition_raasi_plain
+condition = condition_raasi_plain_arni
 sql = "SELECT * FROM " + table_name + " WHERE " + condition
 df = pd.read_sql(sql=sql, con=engine)
 # print(df['MOLECULE'].unique())
@@ -55,18 +55,19 @@ df = pd.read_sql(sql=sql, con=engine)
 #     df[col] = df[col].map(d_rename).fillna('其他')
 
 # df['TC III'] = df['TC III'].str.split('|').str[1]
-df["MOLECULE"] = df["MOLECULE"].str.split("|").str[0]
-df["PRODUCT"] = (
-    (df["PRODUCT"].str.split("|").str[0])
-    + "（"
-    + df["PRODUCT"].str.split("|").str[1].str[-3:]
-    + "）"
-)
-df["PRODUCT_CORP"] = (
-    df["PRODUCT_CORP"].str.split("（").str[0].str.split("|").str[0]
-    + "\n"
-    + df["PRODUCT_CORP"].str.split("（").str[1].str.split("|").str[0]
-)
+df["MOLECULE"] = df["MOLECULE"].str.split("|").str[1]
+df["PRODUCT"] = df["PRODUCT"].apply(lambda x: x[:-3].strip() + " (" + x[-3:] + ")")
+# df["PRODUCT"] = (
+#     (df["PRODUCT"].str.split("|").str[0])
+#     + "（"
+#     + df["PRODUCT"].str.split("|").str[1].str[-3:]
+#     + "）"
+# )
+# df["PRODUCT_CORP"] = (
+#     df["PRODUCT_CORP"].str.split("（").str[0].str.split("|").str[0]
+#     + "\n"
+#     + df["PRODUCT_CORP"].str.split("（").str[1].str.split("|").str[0]
+# )
 mask = df["MOLECULE"] == "氯沙坦钾"
 df.loc[mask, "MOLECULE"] = "氯沙坦"
 mask = df["MOLECULE"] == "氯沙坦钾氢氯噻嗪"
@@ -97,7 +98,7 @@ mask = df["MOLECULE"].isin(
         "缬沙坦,氢氯噻嗪",
     ]
 )
-df.loc[mask, "VBP"] = "带量品种"
+df.loc[mask, "VBP"] = "VBP品种"
 mask = (
     df["MOLECULE"].isin(
         [
@@ -119,10 +120,10 @@ mask = (
     )
     == False
 )
-df.loc[mask, "VBP"] = "非带量品种"
+df.loc[mask, "VBP"] = "非VBP品种"
 
 # ARNI销量打55折
-if condition == condition_raasi:
+if condition == condition_raasi or condition_raasi_plain_arni:
     mask = df["MOLECULE"] == "沙库巴曲缬沙坦"
     df.loc[mask, "AMOUNT"] = df.loc[mask, "AMOUNT"] * 0.55
 
@@ -131,6 +132,8 @@ mask = df["UNIT"] == "Volume (Counting Unit)"
 df_std_volume = df.loc[mask, :]
 df_std_volume["UNIT"] = "Volume (Std Counting Unit)"
 df = pd.concat([df, df_std_volume])
+
+df["STRENGTH"] = df["PACKAGE"].apply(lambda x: x.split()[-2])
 
 convert_std_volume(df, "MOLECULE", "氯沙坦", "100MG", 2)
 convert_std_volume(df, "MOLECULE", "厄贝沙坦", "75MG", 0.5)
@@ -159,6 +162,7 @@ df.loc[mask, "TC III"] = "A+D"
 mask = df["MOLECULE"].str.contains("沙库巴曲缬沙坦")
 df.loc[mask, "TC III"] = "ARNI"
 
+
 # writer = pd.ExcelWriter('output.xlsx')
 # df.to_excel(writer,'Sheet1')
 # writer.save()
@@ -183,7 +187,7 @@ df.loc[mask, "TC III"] = "ARNI"
 # r.plot_annual_performance(dimension='MOLECULE', unit='Volume (Counting Unit)', sorter=['缬沙坦', '厄贝沙坦', '氯沙坦钾', '替米沙坦', '坎地沙坦', '奥美沙坦', '阿利沙坦', '培哚普利', '贝那普利', '其他'])
 
 
-r = chpa(df, name="RAAS市场")
+r = chpa(df, name="RAAS+ARNI市场")
 
 # r.plot_overall_performance(
 #     dimension="TC III",
@@ -251,6 +255,7 @@ r = chpa(df, name="RAAS市场")
 #     series_limit=250,
 #     showLabel=True,
 #     labelLimit=20,
+#     ylim=[-1, 1],
 # )
 # r.plot_group_share_gr(
 #     index="MOLECULE",
@@ -262,6 +267,7 @@ r = chpa(df, name="RAAS市场")
 #     showLabel=True,
 #     unit="Volume (Std Counting Unit)",
 #     labelLimit=20,
+#     ylim=[-1, 2],
 # )
 
 # r.plot_share(dimension="MOLECULE", column="阿利沙坦", return_type="份额")
@@ -277,6 +283,17 @@ r = chpa(df, name="RAAS市场")
 #     column="阿利沙坦",
 #     return_type="净增长贡献",
 #     unit="Volume (Std Counting Unit)",
+# )
+
+# r.plot_share_trend(
+#     dimension="MOLECULE",
+#     column="阿利沙坦",
+# )
+# r.plot_share_trend(
+#     dimension="MOLECULE",
+#     column="阿利沙坦",
+#     unit="Volume (Std Counting Unit)",
+#     series_limit=12,
 # )
 
 # r.plot_share_trend(
@@ -322,10 +339,10 @@ r = chpa(df, name="RAAS市场")
 
 
 # r.plot_group_size_diff(
-#     index="PRODUCT_CORP",
+#     index="PRODUCT",
 #     date=[r.latest_date()],
 #     dimension=None,
-#     column="信立坦\n深圳信立泰药业股份有限公司",
+#     column=None,
 #     adjust_scale=0.015,
 #     series_limit=30,
 #     showLabel=True,
@@ -333,10 +350,10 @@ r = chpa(df, name="RAAS市场")
 #     labelLimit=20,
 # )
 # r.plot_group_size_diff(
-#     index="PRODUCT_CORP",
+#     index="PRODUCT",
 #     date=[r.latest_date()],
 #     dimension=None,
-#     column="信立坦\n深圳信立泰药业股份有限公司",
+#     column=None,
 #     adjust_scale=0.03,
 #     series_limit=30,
 #     showLabel=True,
@@ -344,89 +361,67 @@ r = chpa(df, name="RAAS市场")
 #     labelLimit=20,
 # )
 # r.plot_group_share_gr(
-#     index="PRODUCT_CORP",
+#     index="PRODUCT",
 #     date=[r.latest_date()],
 #     dimension=None,
-#     column="信立坦\n深圳信立泰药业股份有限公司",
+#     column=None,
 #     adjust_scale=0.015,
 #     series_limit=30,
 #     showLabel=True,
-#     ylim=[-1, 5.5],
+#     ylim=[-1, 1],
 #     labelLimit=20,
 # )
 # r.plot_group_share_gr(
-#     index="PRODUCT_CORP",
+#     index="PRODUCT",
 #     date=[r.latest_date()],
 #     dimension=None,
-#     column="信立坦\n深圳信立泰药业股份有限公司",
+#     column=None,
 #     adjust_scale=0.03,
 #     series_limit=30,
 #     showLabel=True,
 #     unit="Volume (Std Counting Unit)",
-#     ylim=[-1, 5.5],
+#     ylim=[-1, 2],
 #     labelLimit=20,
 # )
 
-# r.plot_share(dimension="PRODUCT", column="信立坦（SI6）", return_type="份额")
-# r.plot_share(dimension="PRODUCT", column="信立坦（SI6）", return_type="净增长贡献")
+# r.plot_share(dimension="PRODUCT", column="XIN LI TAN (SI6)", return_type="份额")
+# r.plot_share(dimension="PRODUCT", column="XIN LI TAN (SI6)", return_type="净增长贡献")
 # r.plot_share(
 #     dimension="PRODUCT",
-#     column="信立坦（SI6）",
+#     column="XIN LI TAN (SI6)",
 #     return_type="份额",
 #     unit="Volume (Std Counting Unit)",
 # )
 # r.plot_share(
 #     dimension="PRODUCT",
-#     column="信立坦（SI6）",
+#     column="XIN LI TAN (SI6)",
 #     return_type="净增长贡献",
 #     unit="Volume (Std Counting Unit)",
 # )
 
 # r.plot_share_trend(
 #     dimension="PRODUCT",
-#     column="信立坦（SI6）",
-#     show_list=[
-#         "诺欣妥（NVU）",
-#         "倍博特（NVU）",
-#         "信立坦（SI6）",
-#         "百安新（YAZ）",
-#         "洛汀新（NVU）",
-#         "代文（NVU）",
-#         "复傲坦（DCG）",
-#         "氨氯地平贝那普利片(II)（S5O）",
-#         "培哚普利氨氯地平片(III)（SVU）",
-#         "海捷亚（MSG）",
-#     ],
+#     column="XIN LI TAN (SI6)",
+#     series_limit=10,
 # )
 # r.plot_share_trend(
 #     dimension="PRODUCT",
-#     column="信立坦（SI6）",
 #     unit="Volume (Std Counting Unit)",
-#     show_list=[
-#         "诺欣妥（NVU）",
-#         "倍博特（NVU）",
-#         "信立坦（SI6）",
-#         "百安新（YAZ）",
-#         "洛汀新（NVU）",
-#         "代文（NVU）",
-#         "复傲坦（DCG）",
-#         "氨氯地平贝那普利片(II)（S5O）",
-#         "培哚普利氨氯地平片(III)（SVU）",
-#         "海捷亚（MSG）",
-#     ],
+#     column="XIN LI TAN (SI6)",
+#     series_limit=10,
 # )
 
 r = chpa(df, name="RAAS平片+ARNI市场")
 
-r.plot_overall_performance(dimension="TC III")
-r.plot_overall_performance(dimension="TC III", unit="Volume (Std Counting Unit)")
-r.plot_overall_performance(dimension="TC III", period="QTR", cycle="Quarterly")
-r.plot_overall_performance(
-    dimension="TC III",
-    unit="Volume (Std Counting Unit)",
-    period="QTR",
-    cycle="Quarterly",
-)
+# r.plot_overall_performance(dimension="TC III")
+# r.plot_overall_performance(dimension="TC III", unit="Volume (Std Counting Unit)")
+# r.plot_overall_performance(dimension="TC III", period="QTR", cycle="Quarterly")
+# r.plot_overall_performance(
+#     dimension="TC III",
+#     unit="Volume (Std Counting Unit)",
+#     period="QTR",
+#     cycle="Quarterly",
+# )
 
 
 # r.plot_overall_performance(dimension="VBP")
@@ -459,19 +454,23 @@ r.plot_overall_performance(
 #     date=[r.latest_date()],
 #     dimension=None,
 #     column="阿利沙坦",
-#     adjust_scale=0.02,
+#     adjust_scale=0.01,
 #     series_limit=250,
 #     showLabel=True,
+#     ylim=[-0.6, 0.4],
+#     labelLimit=12,
 # )
 # r.plot_group_share_gr(
 #     index="MOLECULE",
 #     date=[r.latest_date()],
 #     dimension=None,
 #     column="阿利沙坦",
-#     adjust_scale=0.04,
+#     adjust_scale=0.01,
 #     series_limit=250,
 #     showLabel=True,
 #     unit="Volume (Std Counting Unit)",
+#     ylim=[-1, 2],
+#     labelLimit=12,
 # )
 
 # r.plot_share(dimension="MOLECULE", column="阿利沙坦", return_type="份额")
@@ -524,20 +523,20 @@ r.plot_overall_performance(
 # )
 
 # r.plot_group_size_diff(
-#     index="PRODUCT_CORP",
+#     index="PRODUCT",
 #     date=[r.latest_date()],
 #     dimension=None,
-#     column="信立坦\n深圳信立泰药业股份有限公司",
+#     column=None,
 #     adjust_scale=0.015,
 #     series_limit=30,
 #     showLabel=True,
 #     unit="Value",
 # )
 # r.plot_group_size_diff(
-#     index="PRODUCT_CORP",
+#     index="PRODUCT",
 #     date=[r.latest_date()],
 #     dimension=None,
-#     column="信立坦\n深圳信立泰药业股份有限公司",
+#     column=None,
 #     adjust_scale=0.03,
 #     series_limit=30,
 #     showLabel=True,
@@ -545,83 +544,58 @@ r.plot_overall_performance(
 # )
 
 # r.plot_group_share_gr(
-#     index="PRODUCT_CORP",
+#     index="PRODUCT",
 #     date=[r.latest_date()],
 #     dimension=None,
-#     column="信立坦\n深圳信立泰药业股份有限公司",
+#     column=None,
 #     adjust_scale=0.015,
 #     series_limit=30,
 #     showLabel=True,
-#     ylim=[-1, 2],
+#     ylim=[-1, 1],
 # )
 # r.plot_group_share_gr(
-#     index="PRODUCT_CORP",
+#     index="PRODUCT",
 #     date=[r.latest_date()],
 #     dimension=None,
-#     column="信立坦\n深圳信立泰药业股份有限公司",
+#     column=None,
 #     adjust_scale=0.03,
 #     series_limit=30,
 #     showLabel=True,
 #     labelLimit=20,
 #     unit="Volume (Std Counting Unit)",
-#     ylim=[-1, 5.5],
+#     ylim=[-1, 2],
 # )
 
-# r.plot_share(dimension="PRODUCT", column="信立坦（SI6）", return_type="份额")
-# r.plot_share(dimension="PRODUCT", column="信立坦（SI6）", return_type="净增长贡献")
+# r.plot_share(dimension="PRODUCT", column="XIN LI TAN (SI6)", return_type="份额")
+# r.plot_share(dimension="PRODUCT", column="XIN LI TAN (SI6)", return_type="净增长贡献")
 # r.plot_share(
 #     dimension="PRODUCT",
-#     column="信立坦（SI6）",
+#     column="XIN LI TAN (SI6)",
 #     return_type="份额",
 #     unit="Volume (Std Counting Unit)",
 # )
 # r.plot_share(
 #     dimension="PRODUCT",
-#     column="信立坦（SI6）",
+#     column="XIN LI TAN (SI6)",
 #     return_type="净增长贡献",
 #     unit="Volume (Std Counting Unit)",
 # )
 
 # r.plot_share_trend(
 #     dimension="PRODUCT",
-#     column="信立坦（SI6）",
-#     show_list=[
-#         "诺欣妥（NVU）",
-#         "信立坦（SI6）",
-#         "代文（NVU）",
-#         "洛汀新（NVU）",
-#         "雅施达（SVU）",
-#         "倍怡（ZJ5）",
-#         "安博维（SA9）",
-#         "美卡素（B.I）",
-#         "科素亚（MSG）",
-#         "依那普利（YAZ）",
-#         "兰沙（BW.）",
-#         "吉加（H9R）",
-#     ],
+#     column="XIN LI TAN (SI6)",
+#     series_limit=10,
 # )
 # r.plot_share_trend(
 #     dimension="PRODUCT",
-#     column="信立坦（SI6）",
+#     column="XIN LI TAN (SI6)",
 #     unit="Volume (Std Counting Unit)",
-#     show_list=[
-#         "诺欣妥（NVU）",
-#         "倍怡（ZJ5）",
-#         "吉加（H9R）",
-#         "依那普利（YAZ）",
-#         "安来（ZJ5）",
-#         "洛汀新（NVU）",
-#         "伊达力（ZHI）",
-#         "托平（ZHT）",
-#         "代文（NVU）",
-#         "雅施达（SVU）",
-#         "信立坦（SI6）",
-#         "搏力高（ZYG）",
-#     ],
+#     series_limit=10,
 # )
 
-# df = df[df['TC III'] == 'ARB']
-# r = chpa(df, name='ARB平片市场')
+df = df[df["TC III"] == "ARB"]
+r = chpa(df, name="ARB平片市场")
+r.plot_overall_performance(dimension="MOLECULE", width=15, height=6)
 # r.plot_annual_performance(dimension='MOLECULE', sorter=['缬沙坦', '厄贝沙坦', '氯沙坦钾', '替米沙坦', '坎地沙坦', '奥美沙坦', '阿利沙坦'])
 # r.plot_annual_performance(dimension='MOLECULE', unit='Volume (Counting Unit)', sorter=['缬沙坦', '厄贝沙坦', '氯沙坦钾', '替米沙坦', '坎地沙坦', '奥美沙坦', '阿利沙坦'])
 # r.plot_group_share_gr(index='MOLECULE', date=[r.latest_date()], dimension=None,
