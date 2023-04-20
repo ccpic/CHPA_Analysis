@@ -1,167 +1,195 @@
-from sqlalchemy import create_engine
+from re import template
+from numpy import product
 import pandas as pd
-from typing import Callable
-
-D_SORTER = {}
-
-
-class CorpAnalyzer(pd.DataFrame):
-    @property
-    def _constructor(self):
-        return CorpAnalyzer._internal_constructor(self.__class__)
-
-    class _internal_constructor(object):
-        def __init__(self, cls):
-            self.cls = cls
-
-        def __call__(self, *args, **kwargs):
-            kwargs["name"] = None
-            kwargs["date_column"] = None
-            kwargs["value_column"] = None
-            return self.cls(*args, **kwargs)
-
-        def _from_axes(self, *args, **kwargs):
-            return self.cls._from_axes(*args, **kwargs)
-
-    def __init__(
-        self,
-        data: pd.DataFrame,
-        name: str,
-        date_column: str = "DATE",
-        value_column: str = "AMOUNT",
-        savepath: str = "./plots/",
-        index=None,
-        columns=None,
-        dtype=None,
-        copy=True,
-    ):
-        """初始化对象
-
-        Parameters
-        ----------
-        data : pd.DataFrame
-            一个pandas df数据
-        name : str
-            数据名，用于一些output存储的命名以及绘图指标的标题
-        date_column : str, optional
-            指定日期列，作为大部分数据透视时的行, by default "DATE"
-        value_column : str, optional
-            指定数值列，作为大部分数据透视时的值, by default "AMOUNT"
-        savepath : str, optional
-            绘图等output方法存储的位置, by default "./plots/"
-        其他参数为继承自pandas dataframe，不用输入
-        """
-        super(CorpAnalyzer, self).__init__(
-            data=data, index=index, columns=columns, dtype=dtype, copy=copy
-        )
-        self.data = data
-        self.name = name
-        self.date_column = date_column
-        self.value_column = value_column
-        self.savepath = savepath
-
-    # 透视
-    def get_pivot(
-        self,
-        index: str = None,
-        columns: str = None,
-        values: str = None,
-        aggfunc: Callable = sum,  # 默认求和
-        query_str: str = "ilevel_0 in ilevel_0",  # 默认query语句能返回df总体
-        perc: bool = False,
-        sort_values: bool = True,
-        dropna: bool = True,
-        fillna: bool = True,
-        **kwargs,
-    ) -> pd.DataFrame:
-        """返回数据透视的结果
-
-        Parameters
-        ----------
-        index : str, optional
-            数据透视表的行, by default None
-        columns : str, optional
-            数据透视表的列, by default None
-        values : str, optional
-            数据透视表的值, by default None
-        aggfunc : Callable, optional
-            数据透视表的汇总方式, by default sum
-        query_str: str, optional
-            筛选的数据范围，类似sql写法, by default "ilevel_0 in ilevel_0"
-        per: bool, optional
-            是否转换为行汇总的百分比, by default False
-        sort_values : bool, optional
-            是否排序，如是按照行/汇总总和大小排序, by default True
-        dropna : bool, optional
-            是否去除空值，如是将把全部为空整行/列去除, by default True
-        fillna : bool, optional
-            是否替换空值，如是将空值替换为0, by default True
-
-        Returns
-        -------
-        pd.DataFrame
-            一个透视后的pandas df
-        """
-
-        kwargs = kwargs.copy()
-
-        pivoted = pd.pivot_table(
-            self.query(query_str),
-            values=values,
-            index=index,
-            columns=columns,
-            aggfunc=aggfunc,
-        )
-        # pivot table对象转为默认df
-        pivoted = pd.DataFrame(pivoted.to_records())
-        try:
-            pivoted.set_index(index, inplace=True)
-        except KeyError:  # 当index=None时，捕捉错误并set_index("index"字符串)
-            pivoted.set_index("index", inplace=True)
-
-        if sort_values is True:
-            s = pivoted.sum(axis=1).sort_values(ascending=False)
-            pivoted = pivoted.loc[s.index, :]  # 行按照汇总总和大小排序
-            s = pivoted.sum(axis=0).sort_values(ascending=False)
-            pivoted = pivoted.loc[:, s.index]  # 列按照汇总总和大小排序
-
-        if columns in D_SORTER:
-            pivoted = pivoted.reindex(columns=D_SORTER[columns])
-
-        if index in D_SORTER:
-            pivoted = pivoted.reindex(D_SORTER[index])  # 对于部分变量有固定排序
-
-        # 删除NA或替换NA为0
-        if dropna is True:
-            pivoted = pivoted.dropna(how="all")
-            pivoted = pivoted.dropna(axis=1, how="all")
-        else:
-            if fillna is True:
-                pivoted = pivoted.fillna(0)
-
-        if perc is True:
-            pivoted = pivoted.div(pivoted.sum(axis=1), axis=0)  # 计算行汇总的百分比
-
-        return pivoted
-
-
+from sqlalchemy import create_engine
+from cls.data_cls import ChpaAnalyzer
+from cls.ppt_cls import ChpaPPT
+from pptx.util import Inches, Pt, Cm
+import matplotlib.pyplot as plt
+from cls.chart_cls import PlotBubble, PlotWaterfall, PlotStackedBarPlus, PlotStackedBar
 
 if __name__ == "__main__":
     engine = create_engine("mssql+pymssql://(local)/CHPA_1806")
     table_name = "data"
 
-    condition = "[TC II] = 'C09 RENIN-ANGIOTEN SYST AGENT|作用于肾素-血管紧张素系统的药物'"
+    condition = "([TC I] = 'C CARDIOVASCULAR SYSTEM|心血管系统' \
+        and [TC II] not in ('C04 CEREB.+PERIPHE.VASOTHERAP|脑血管和外周血管治疗剂', 'C05 A-VARIC/A-HAEMO PREP|抗静脉曲张/抗痔疮药') \
+        and MOLECULE not in ('谷红|ACEGLUTAMIDE+CARTHAMUS TINCTORIUS', '银杏蜜环|ARMILLARIA TABESCENS+GINKGO BILOBA', '棓丙酯|PROPYL GALLATE','葛根素|PUERARIN', '葛根素|PUERARIA')) \
+        or [TC II] in ('B01 ANTITHROMBOTIC AGENTS|抗血栓药', 'B02 BLOOD COAG SYST OTH PROD|凝血系统及其他药物') \
+        or MOLECULE in ('血脂康胶囊(片)|TRADITIONAL CHINESE MEDICINE')"
     if condition is None:
         sql = f"SELECT * FROM {table_name} WHERE UNIT = 'Value' AND PERIOD = 'MAT'"
     else:
-        sql = f"SELECT * FROM {table_name}  WHERE UNIT = 'Value' AND PERIOD = 'MAT' AND {condition}"
+        sql = f"SELECT * FROM {table_name}  WHERE UNIT = 'Value' AND PERIOD = 'MAT' AND ({condition})"
 
     df = pd.read_sql(sql=sql, con=engine)
+    df.to_excel("data.xlsx")
+    df["AMOUNT"] = df["AMOUNT"] / 1000000  # 换算单位为百万
+    df["PRODUCT"] = df["PRODUCT"].str.split("|").str[0]
+    df["MOLECULE"] = df["MOLECULE"].str.split("|").str[0]
+    df["PRODUCT_MOLECULE"] = df["PRODUCT"] + "(" + df["MOLECULE"] + ")"
+    df["CORPORATION"] = df["CORPORATION"].str.split("|").str[0]
 
-    c = CorpAnalyzer(data=df, name="CV领域")
+    market = "CV领域"
+    c = ChpaAnalyzer(data=df, name=market)
+    p = ChpaPPT(analyzer=c, template_path="template.pptx", save_path="corp.pptx")
 
-    index = "DATE"
-    pivoted = c.get_pivot(index=index, columns="CORPORATION", values="AMOUNT")
+    # CV领域定义市场整体趋势
+    market_trend = c.get_pivot(index="DATE")
+    market_trend.index = market_trend.index.astype(str)
+    market_trend.columns = ["滚动年金额(百万元)"]
+    market_gr = market_trend.pct_change(periods=4)
+    market_gr.columns = ["同比增长率"]
+    market_gr.index = market_gr.index.astype(str)
 
-    pivoted = pivoted.sort_values(by=pivoted.index[-1], ascending=False, axis=1)
-    print(pivoted.iloc[-1, :].index)
+    f = plt.figure(
+        width=15,
+        height=6,
+        FigureClass=PlotStackedBar,
+        fmt=["{:,.0f}"],
+        savepath=c.save_path,
+        data=market_trend,
+        fontsize=10,
+        data_line=market_gr,
+        fmt_line=["{:,.1%}"],
+        style={"title": f"{market}定义市场整体趋势", "xlabel_rotation": 90},
+    )
+
+    p.add_slide(title=f"{market}定义市场整体趋势")
+    p.add_image(f.plot(), height=Cm(13))
+
+    # 所有公司气泡图
+
+    corp_kpi = c.get_kpi("CORPORATION", is_formatted=False)
+    corp_kpi = corp_kpi[corp_kpi["滚动年金额"] > 0]
+
+    f = plt.figure(
+        width=14,
+        height=7,
+        FigureClass=PlotBubble,
+        gs=None,
+        fmt=None,
+        savepath=c.save_path,
+        data=corp_kpi.loc[:, ["滚动年金额", "净增长", "滚动年金额"]],
+        fontsize=10,
+        style={
+            "title": f"{market}所有企业表现 滚动年金额 vs. 净增长",
+            "xlabel": "滚动年金额(百万元)",
+            "ylabel": "滚动年金额净增长(百万元)",
+        },
+    )
+
+    p.add_slide(title=f"{market}所有企业表现 滚动年金额 vs. 净增长")
+    p.add_image(
+        f.plot(label_limit=30, x_fmt="{:,.0f}", y_fmt="{:+,.0f}", y_avg=0),
+        width=Cm(30),
+        top=Cm(4.14),
+    )
+
+    # Top规模公司表格页
+    corp_kpi = c.get_kpi("CORPORATION", is_formatted=True)
+    corp_kpi = corp_kpi.rename({"滚动年金额": "滚动年金额\n(百万元)", "净增长": "净增长\n(百万元)"}, axis=1)
+
+    product_number = c.get_pivot(
+        index="CORPORATION", values="PRODUCT", aggfunc=lambda x: len(x.unique())
+    )  # 添加CV领域产品数量统计
+    product_number.columns = [f"{market}产品数量"]
+    corp_kpi = pd.concat([corp_kpi, product_number], axis=1)
+
+    p.add_slide(title=f"{market}Top1-15企业排名及表现明细 最新滚动年- 金额")
+    p.add_table(
+        corp_kpi.iloc[:15, :],
+        top = Cm(4),
+        width=Cm(30),
+        font_size=Pt(9),
+        table_style_id="{9D7B26C5-4107-4FEC-AEDC-1716B250A1EF}",
+        col_width={0:Cm(5)}
+    )
+
+    p.add_slide(title=f"{market}Top16-30企业排名及表现明细 最新滚动年- 金额")
+    p.add_table(
+        corp_kpi.iloc[15:30, :],
+        top = Cm(4),
+        width=Cm(30),
+        font_size=Pt(9),
+        table_style_id="{9D7B26C5-4107-4FEC-AEDC-1716B250A1EF}",
+        col_width={0:Cm(5)}
+    )
+
+    # # 循环处理Top30公司的表现
+    # for i, idx in enumerate(corp_kpi.head(30).index):
+    #     rank = i + 1
+
+    #     # 添加产品表现趋势页
+    #     df_product = c.get_pivot(
+    #         index="DATE",
+    #         columns="PRODUCT_MOLECULE",
+    #         query_str=f"CORPORATION == '{idx}'",
+    #         sort_values="by_last_row",
+    #         ascending=False,
+    #         col_others=10,
+    #     )
+    #     df_product.index = df_product.index.astype(str)
+
+    #     f = plt.figure(
+    #         width=14,
+    #         height=7,
+    #         FigureClass=PlotStackedBarPlus,
+    #         gs=None,
+    #         fmt=["{:,.0f}"],
+    #         savepath=c.save_path,
+    #         data=df_product.iloc[[-13, -9, -5, -1], :],
+    #         fontsize=12,
+    #         style={
+    #             "title": f"{idx}产品组合表现趋势 - 滚动年 - 金额",
+    #             "ylabel": "滚动年金额(百万元)",
+    #         },
+    #     )
+
+    #     p.add_slide(title=f"Top{rank} - {idx} - 产品组合表现趋势 - 滚动年 - 金额")
+    #     p.add_image(f.plot(), height=Cm(13))
+
+    #     # 添加产品净增长贡献页
+    #     product_kpi = c.get_kpi(
+    #         "PRODUCT_MOLECULE",
+    #         query_str=f"CORPORATION == '{idx}'",
+    #         is_formatted=False,
+    #         col_others=10,
+    #     )
+
+    #     product_kpi["净增长绝对值"] = product_kpi["净增长"].abs()
+    #     product_kpi.sort_values(by="净增长绝对值", ascending=False, inplace=True)
+    #     title = f"{idx}产品组合最新同比净增长贡献 - 滚动年 - 金额"
+
+    #     value_pre = (
+    #         c.get_pivot(
+    #             "DATE", query_str=f"CORPORATION == '{idx}' and DATE == '2020-12-01'"
+    #         )
+    #         .sum()
+    #         .values[0]
+    #     )
+
+    #     f = plt.figure(
+    #         width=14,
+    #         height=7,
+    #         FigureClass=PlotWaterfall,
+    #         gs=None,
+    #         fmt=["{:,.0f}"],
+    #         savepath=c.save_path,
+    #         data=product_kpi.loc[:, ["净增长"]],
+    #         fontsize=12,
+    #         style={
+    #             "title": title,
+    #             "xlabel_rotation": 90,
+    #             "remove_yticks": True,
+    #             "ylabel": "滚动年金额净增长(百万元)",
+    #         },
+    #     )
+
+    #     p.add_slide(title=f"Top{rank} - {idx} - 产品组合最新同比净增长贡献 - 滚动年 - 金额")
+    #     p.add_image(
+    #         f.plot(pre=[("2020", value_pre)], net_index="2021"),
+    #         height=Cm(13),
+    #     )
+
+    p.save()
