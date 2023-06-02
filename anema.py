@@ -1,5 +1,6 @@
-from msilib.schema import Condition
-from CHPA import *
+from CHPA2 import CHPA, convert_std_volume
+from sqlalchemy import create_engine
+import pandas as pd
 
 df_index = pd.read_excel("肾性贫血定义市场分子PTD系数.xlsx", engine="openpyxl")
 df_index["PRODUCT_STR"] = df_index["PRODUCT"].apply(lambda x: f"'{x}'")
@@ -64,8 +65,8 @@ df["PRODUCT_PACKAGE"] = (
 
 df_index.drop_duplicates(subset="PACKAGE", inplace=True)
 for index, value in df_index.iterrows():
-    mask = (df["PRODUCT_PACKAGE"] == value[3]) & (df["UNIT"] == "PTD")
-    df.loc[mask, "AMOUNT"] = df.loc[mask, "AMOUNT"] * value[4]
+    mask = (df["PRODUCT_PACKAGE"] == value[4]) & (df["UNIT"] == "PTD")
+    df.loc[mask, "AMOUNT"] = df.loc[mask, "AMOUNT"] * value[8]
 
 
 # def convert_std_volume(df, dimension, target, strength, ratio):
@@ -112,73 +113,57 @@ for index, value in df_index.iterrows():
 # convert_std_volume(df, "MOLECULE", "硫酸亚铁", "300MG", 1 / 3)
 # convert_std_volume(df, "MOLECULE", "硫酸亚铁", "0.3G", 1 / 3)
 
+r = CHPA(df, name="肾性贫血市场", date_column="DATE", period_interval=3)
 
-r = chpa(df, name="肾性贫血市场")
+r.plot_overall_performance(index="TC III", unit_change="百万")
+r.plot_overall_performance(index="TC III", unit="PTD", unit_change="百万")
+r.plot_overall_performance(index="TC III", period="QTR", unit_change="百万")
+r.plot_overall_performance(index="TC III", period="QTR", unit="PTD", unit_change="百万")
 
-# r.plot_overall_performance(dimension="TC III")
-# r.plot_overall_performance(dimension="TC III", unit="PTD")
-# r.plot_overall_performance(dimension="TC III", cycle="Quarterly", period="QTR")
-# r.plot_overall_performance(
-#     dimension="TC III", unit="PTD", cycle="Quarterly", period="QTR"
+# r.plot_size_diff(
+#     index="PRODUCT",
+#     unit_change="百万",
 # )
-
-# r.plot_share(dimension="TC III", column=None, return_type="份额")
-# r.plot_share(dimension="TC III", column=None, return_type="净增长贡献")
-# r.plot_share(dimension="TC III", column=None, return_type="份额", unit="PTD")
-# r.plot_share(dimension="TC III", column=None, return_type="净增长贡献", unit="PTD")
-
-
-# r.plot_group_size_diff(
-#     index="MOLECULE",
-#     date=[r.latest_date()],
-#     dimension=None,
-#     column=None,
-#     adjust_scale=0.01,
-#     series_limit=250,
-#     showLabel=True,
-#     unit="Value",
-#     labelLimit=7,
-# )
-
-# r.plot_group_size_diff(
-#     index="MOLECULE",
-#     date=[r.latest_date()],
-#     dimension=None,
-#     column=None,
-#     adjust_scale=0.2,
-#     series_limit=250,
-#     showLabel=True,
+# r.plot_size_diff(
+#     index="PRODUCT",
 #     unit="PTD",
-#     labelLimit=7,
+#     unit_change="百万",
 # )
+# r.plot_share_gr(index="PRODUCT", ylim=(-0.5, 1), label_topy=0)
+# r.plot_share_gr(index="PRODUCT", ylim=(-0.5, 1), unit="PTD", label_topy=0)
+r.plottable_latest(index="PRODUCT", hue="CORPORATION")
+r.plottable_latest(index="PRODUCT", unit="PTD", hue="CORPORATION")
 
-# r.plot_group_share_gr(
-#     index="MOLECULE",
-#     date=[r.latest_date()],
-#     dimension=None,
-#     column=None,
-#     adjust_scale=0.01,
-#     series_limit=250,
-#     showLabel=True,
-#     unit="Value",
+# r.plot_share_trend(index="PRODUCT")
+# r.plot_share_trend(index="PRODUCT", unit="PTD")
+
+# r.plottable_annual(index="PRODUCT")
+# r.plottable_annual(index="PRODUCT", unit="PTD")
+
+df2 = df[df["TC III"].isin(["B03C 红细胞生成素", "B03D HIF-PH抑制剂"])]
+r = CHPA(df2, name="EPO+HIF市场", date_column="DATE", period_interval=3)
+
+# r.plot_overall_performance(index="TC III", unit_change="百万")
+# r.plot_overall_performance(index="TC III", unit="PTD", unit_change="百万")
+# r.plot_overall_performance(index="TC III", period="QTR", unit_change="百万")
+# r.plot_overall_performance(index="TC III", period="QTR", unit="PTD", unit_change="百万")
+
+# r.plot_size_diff(
+#     index="PRODUCT",
+#     unit_change="百万",
 # )
-
-# r.plot_group_share_gr(
-#     index="MOLECULE",
-#     date=[r.latest_date()],
-#     dimension=None,
-#     column=None,
-#     adjust_scale=0.2,
-#     series_limit=250,
-#     showLabel=True,
+# r.plot_size_diff(
+#     index="PRODUCT",
 #     unit="PTD",
+#     unit_change="百万",
 # )
+# r.plot_share_gr(index="PRODUCT", ylim=(-0.5, 1), label_topy=0)
+# r.plot_share_gr(index="PRODUCT", ylim=(-0.5, 1), unit="PTD", label_topy=0)
+# r.plottable_latest(index="PRODUCT", hue="CORPORATION")
+# r.plottable_latest(index="PRODUCT", unit="PTD", hue="CORPORATION")
 
-# r.plot_share_trend(dimension="MOLECULE", column=None, series_limit=10)
+# r.plot_share_trend(index="PRODUCT")
+# r.plot_share_trend(index="PRODUCT", unit="PTD")
 
-# r.plot_share_trend(
-#     dimension="MOLECULE",
-#     column=None,
-#     series_limit=10,
-#     unit="PTD",
-# )
+# r.plottable_annual(index="PRODUCT")
+# r.plottable_annual(index="PRODUCT", unit="PTD")

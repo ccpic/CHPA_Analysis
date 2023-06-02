@@ -3,7 +3,6 @@ import pandas as pd
 from data_func import get_trend_data, generate_df
 from chart_func import *
 import re
-import chardet
 
 start = time.clock()
 

@@ -2,7 +2,6 @@ from os import path
 import sys
 from plottable import ColumnDefinition, Table
 from plottable.cmap import normed_cmap
-from plottable.plots import bar
 
 sys.path.append(path.abspath("../chart_class"))
 from dataframe import DfAnalyzer
@@ -168,16 +167,6 @@ for index in ["PRODUCT_CORP", "MOLECULE"]:
                 ColumnDefinition(
                     name=f"份额_{year}",
                     title="份额",
-                    # plot_fn=bar,
-                    # plot_kw={
-                    #     "cmap": cmap[year],
-                    #     "plot_bg_bar": False,
-                    #     "annotate": True,
-                    #     "height": 0.5,
-                    #     "lw": 0.5,
-                    #     "formatter": "{:.1%}",
-                    #     "xlim": (0, 0.3),
-                    # },
                     textprops={
                         "ha": "right",
                         "bbox": {"boxstyle": "round", "pad": 0.3},

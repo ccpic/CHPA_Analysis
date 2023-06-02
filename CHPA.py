@@ -20,6 +20,8 @@ from matplotlib.colors import LinearSegmentedColormap
 from pandas.plotting import register_matplotlib_converters
 from adjustText import adjust_text
 import matplotlib.dates as mdates
+from plottable import ColumnDefinition, Table
+from plottable.cmap import normed_cmap
 
 register_matplotlib_converters()
 
@@ -165,12 +167,12 @@ d_region2 = {
 }
 
 color_dict = {
-    "阿齐沙坦":"saddlebrown",
-    'β受体阻断剂':"teal",
-    "MRA":"olivedrab",
-    'RAAS平片(ARB+ACEI)':"crimson",
-    "螺内酯":"navy",
-    "非奈利酮":"crimson",
+    "阿齐沙坦": "saddlebrown",
+    "β受体阻断剂": "teal",
+    "MRA": "olivedrab",
+    "RAAS平片(ARB+ACEI)": "crimson",
+    "螺内酯": "navy",
+    "非奈利酮": "crimson",
     "恒格列净": "darkgreen",
     "伊伐布雷定": "navy",
     "美托洛尔": "navy",
@@ -933,7 +935,6 @@ class chpa(pd.DataFrame):
         width=18,
         height=7,
     ):
-
         unit_label = change_unit(unit=yunit, text_sign=ytitle[-1], df=df)[0]
         df = change_unit(unit=yunit, text_sign=ytitle[-1], df=df)[1]
 
@@ -1028,7 +1029,6 @@ class chpa(pd.DataFrame):
         y2fmt="{:+.1%}",
         y2lim=None,
     ):
-
         unit_label = change_unit(unit=y1unit, text_sign=y1title[-1], df=df_bar)[0]
         df_bar = change_unit(unit=y1unit, text_sign=y1title[-1], df=df_bar)[1]
 
@@ -1132,7 +1132,6 @@ class chpa(pd.DataFrame):
         showLabel=True,
         labelLimit=15,
     ):
-
         y_unit_label = change_unit(unit=yunit, text_sign=ytitle[-1], df=y)[0]
         y = change_unit(unit=yunit, text_sign=ytitle[-1], df=y)[1]
         x_unit_label = change_unit(unit=xunit, text_sign=xtitle[-1], df=x)[0]
@@ -1763,7 +1762,6 @@ class chpa(pd.DataFrame):
         )
 
         for i, idx in enumerate(index_list):
-
             df2 = df[df[index] == idx]
             df2.drop(index, axis=1, inplace=True)
 
@@ -1949,7 +1947,6 @@ class chpa(pd.DataFrame):
         ymax=None,
         haslegend=True,
     ):
-
         colors = []
         for item in df.columns.tolist():
             print(item)
@@ -2025,7 +2022,6 @@ class chpa(pd.DataFrame):
         plt.close()
 
     def plot_pie(self, sizelist, labellist, column, title):
-
         # sns.set_style("white")
 
         # Prepare the white center circle for Donat shape
@@ -2454,7 +2450,6 @@ class chpa(pd.DataFrame):
             )
 
     def plot_map(self, dimension, column, unit="Value", period="MAT"):
-
         d_latlon = {
             "海门": [121.15, 31.89],
             "鄂尔多斯": [109.781327, 39.608266],
@@ -3416,6 +3411,109 @@ class chpa(pd.DataFrame):
             )
 
         return df
+
+    def plottable(
+        self,
+        index,
+        dimension,
+        unit="Value",
+        period="MAT",
+    ):
+        affix = d_rename[period] + d_rename[unit]
+        print(self.latest_date())
+        df = self.matrix_by_group(index, dimension, [self.latest_date()], unit, period)
+        print(df)
+        # df_combined = pd.DataFrame()
+        # cmap = {}
+        # years = ["2019", "2020", "2021", "2022"]
+        # for i, year in enumerate(years):
+        #     mat = a.get_pivot(
+        #         index=index,
+        #         columns="DATE",
+        #         values="AMOUNT",
+        #         query_str=f"UNIT=='{query_unit}' and PERIOD=='MAT'",
+        #     ).iloc[:, i * 4 - 13]
+        #     rank = mat.rank(ascending=False)
+        #     share = mat.div(mat.sum())
+        #     df = pd.concat([rank, mat, share], axis=1)
+        #     df.columns = [f"排名_{year}", f"年{unit}_{year}", f"份额_{year}"]
+        #     df_combined = pd.concat([df_combined, df], axis=1)
+        #     cmap[year] = normed_cmap(df[f"份额_{year}"], cmap=mpl.cm.PiYG, num_stds=2.5)
+
+        # return df_combined
+        # col_defs = (
+        #     [
+        #         ColumnDefinition(
+        #             name=f"排名_{year}",
+        #             title="排名",
+        #             textprops={"ha": "center"},
+        #             formatter="{:,.0f}",
+        #             group=f"{year}年{unit}",
+        #             width=0.5,
+        #             border="left",
+        #         )
+        #         for year in ["2019", "2020", "2021", "2022"]
+        #     ]
+        #     + [
+        #         ColumnDefinition(
+        #             name=f"年{unit}_{year}",
+        #             title=f"年{unit}",
+        #             textprops={"ha": "right"},
+        #             formatter="{:,.0f}",
+        #             group=f"{year}年{unit}",
+        #         )
+        #         for year in ["2019", "2020", "2021", "2022"]
+        #     ]
+        #     + [
+        #         ColumnDefinition(
+        #             name=f"份额_{year}",
+        #             title="份额",
+        #             # plot_fn=bar,
+        #             # plot_kw={
+        #             #     "cmap": cmap[year],
+        #             #     "plot_bg_bar": False,
+        #             #     "annotate": True,
+        #             #     "height": 0.5,
+        #             #     "lw": 0.5,
+        #             #     "formatter": "{:.1%}",
+        #             #     "xlim": (0, 0.3),
+        #             # },
+        #             textprops={
+        #                 "ha": "right",
+        #                 "bbox": {"boxstyle": "round", "pad": 0.3},
+        #             },
+        #             formatter="{:.1%}",
+        #             group=f"{year}年{unit}",
+        #             cmap=cmap[year],
+        #         )
+        #         for year in ["2019", "2020", "2021", "2022"]
+        #     ]
+        # )
+
+        # plt.rcParams["font.family"] = ["Microsoft YaHei"]
+        # plt.rcParams["savefig.bbox"] = "tight"
+
+        # # for i in range(0, len(df), 20):
+        # height = 10 if index == "MOLECULE" else 11
+        # fig, ax = plt.subplots(figsize=(25, height))
+
+        # table = Table(
+        #     df_combined.head(20),
+        #     column_definitions=col_defs,
+        #     row_dividers=True,
+        #     footer_divider=True,
+        #     ax=ax,
+        #     textprops={
+        #         "fontsize": 14,
+        #     },
+        #     even_row_color="#eeeeee",
+        #     row_divider_kw={"linewidth": 1, "linestyle": (0, (1, 5))},
+        #     col_label_divider_kw={"linewidth": 1, "linestyle": "-"},
+        #     col_label_cell_kw={"height": 2},
+        #     column_border_kw={"linewidth": 1, "linestyle": "-"},
+        # ).autoset_fontcolors(colnames=None)
+
+        # fig.savefig(f"plots/table_{index}_{unit}.png", facecolor=ax.get_facecolor(), dpi=400)
 
 
 def rand_cmap(

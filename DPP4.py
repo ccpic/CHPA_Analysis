@@ -1,4 +1,7 @@
-from CHPA import *
+from CHPA2 import CHPA, convert_std_volume, extract_strength
+from sqlalchemy import create_engine
+import pandas as pd
+import numpy as np
 
 engine = create_engine("mssql+pymssql://(local)/CHPA_1806")
 table_name = "data"
@@ -10,6 +13,7 @@ df = pd.read_sql(sql=sql, con=engine)
 
 df["MOLECULE"] = df["MOLECULE"].str.split("|").str[1]
 df["PRODUCT"] = df["PRODUCT"].apply(lambda x: x[:-3].strip() + " (" + x[-3:] + ")")
+df["STRENGTH"] = df["PACKAGE"].apply(extract_strength)
 # df["PRODUCT"] = (
 #     (df["PRODUCT"].str.split("|").str[0])
 #     + "（"
@@ -37,73 +41,56 @@ df_std_volume = df.loc[mask, :]
 df_std_volume["UNIT"] = "Volume (Std Counting Unit)"
 df = pd.concat([df, df_std_volume])
 
-df["STRENGTH"] = df["PACKAGE"].apply(lambda x: x.split()[-2])
+convert_std_volume(df, "MOLECULE", "沙格列汀", "2.5MG", 1 / 2)
+convert_std_volume(df, "MOLECULE", "维格列汀", "50MG", 1 / 2)
 
-convert_std_volume(df, "MOLECULE", "沙格列汀", "2.5MG", 0.5)
-convert_std_volume(df, "MOLECULE", "维格列汀", "50MG", 0.5)
 
-r = chpa(df, name="DPP4抑制剂单方市场")
+r = CHPA(df, name="DPP4抑制剂单方市场", date_column="DATE", period_interval=3)
 
 # r.plot_overall_performance(
-#     dimension="MOLECULE", sorter=["西格列汀", "利格列汀", "沙格列汀", "维格列汀", "阿格列汀"]
+#     index="MOLECULE", sorter=["西格列汀", "利格列汀", "沙格列汀", "维格列汀", "阿格列汀"], unit_change="百万"
 # )
 
 # r.plot_overall_performance(
-#     dimension="MOLECULE",
+#     index="MOLECULE",
 #     unit="Volume (Std Counting Unit)",
+#     unit_change="百万",
 #     sorter=["西格列汀", "利格列汀", "沙格列汀", "维格列汀", "阿格列汀"],
 # )
 
-# r.plot_overall_performance(dimension="VBP")
+# r.plot_overall_performance(index="VBP", unit_change="百万")
 
 # r.plot_overall_performance(
-#     dimension="VBP",
+#     index="VBP",
+#     unit_change="百万",
 #     unit="Volume (Std Counting Unit)",
 # )
 
-# r.plot_group_size_diff(
-#     index="PRODUCT",
-#     date=[r.latest_date()],
-#     dimension=None,
-#     column=None,
-#     adjust_scale=0.01,
-#     series_limit=250,
-#     showLabel=True,
-#     unit="Value",
-#     labelLimit=7,
+# r.plottable_latest(index="MOLECULE", unit="Value")
+# r.plottable_latest(index="MOLECULE", unit="Volume (Std Counting Unit)")
+
+
+# r.plot_size_diff(index="PRODUCT", unit="Value", unit_change="百万", label_limit=5)
+
+# r.plot_size_diff(
+#     index="PRODUCT", unit="Volume (Std Counting Unit)", unit_change="百万", label_limit=5
 # )
-# r.plot_group_size_diff(
+# r.plot_share_gr(index="PRODUCT", unit="Value", label_limit=5)
+
+# r.plot_share_gr(
+#     index="PRODUCT", unit="Volume (Std Counting Unit)",  label_limit=5
+# )
+
+# r.plottable_latest(index="PRODUCT", unit="Value", hue="CORPORATION")
+# r.plottable_latest(index="PRODUCT", unit="Volume (Std Counting Unit)", hue="CORPORATION")
+
+# r.plot_share_trend(
 #     index="PRODUCT",
-#     date=[r.latest_date()],
-#     dimension=None,
-#     column=None,
-#     adjust_scale=0.03,
-#     series_limit=250,
-#     showLabel=True,
-#     labelLimit=10,
+# )
+# r.plot_share_trend(
+#     index="PRODUCT",
 #     unit="Volume (Std Counting Unit)",
 # )
 
-r.plot_share_trend(
-    dimension="MOLECULE",
-    column=None,
-    series_limit=10,
-)
-r.plot_share_trend(
-    dimension="MOLECULE",
-    column=None,
-    unit="Volume (Std Counting Unit)",
-    series_limit=10,
-)
-
-r.plot_share_trend(
-    dimension="PRODUCT",
-    column=None,
-    series_limit=10,
-)
-r.plot_share_trend(
-    dimension="PRODUCT",
-    column=None,
-    unit="Volume (Std Counting Unit)",
-    series_limit=10,
-)
+# r.plottable_annual(index="PRODUCT")
+# r.plottable_annual(index="PRODUCT", unit="Volume (Std Counting Unit)")

@@ -1,10 +1,12 @@
-from CHPA import *
+from CHPA2 import CHPA, convert_std_volume
+from sqlalchemy import create_engine
+import pandas as pd
 
 engine = create_engine("mssql+pymssql://(local)/CHPA_1806")
 table_name = "data"
 # condition = "MOLECULE in ('氢氯吡格雷|CLOPIDOGREL', '氯吡格雷|CLOPIDOGREL')"
 
-condition = "MOLECULE in ('CLOPIDOGREL|氯吡格雷', 'TICAGRELOR|替格瑞洛') OR PRODUCT='BAYASPIRIN               BAY'"
+condition = "MOLECULE in ('CLOPIDOGREL|氯吡格雷', 'TICAGRELOR|替格瑞洛', 'INDOBUFEN|吲哚布芬') OR PRODUCT='BAYASPIRIN               BAY'"
 # condition = "MOLECULE in ('CLOPIDOGREL|氯吡格雷')"
 sql = "SELECT * FROM " + table_name + " WHERE " + condition
 df = pd.read_sql(sql=sql, con=engine)
@@ -34,122 +36,131 @@ df.loc[mask, "MOLECULE"] = "氯吡格雷"
 convert_std_volume(df, "MOLECULE", "氯吡格雷", "25MG", 0.333333)
 convert_std_volume(df, "MOLECULE", "替格瑞洛", "90MG", 0.5)
 convert_std_volume(df, "MOLECULE", "替格瑞洛", "60MG", 0.5)
+convert_std_volume(df, "MOLECULE", "吲哚布芬", "100MG", 0.5)
 
 
-# df = df[df['MOLECULE']=='氯吡格雷']
-# r = chpa(df, name='氯吡格雷市场')
-# r.plot_overall_performance(dimension='PRODUCT')
-# r.plot_overall_performance(dimension='PRODUCT', unit='Volume (Std Counting Unit)')
-
-r = chpa(df, name="抗血小板市场")
+r = CHPA(df, name="抗血小板市场", date_column="DATE", period_interval=3)
 
 # r.plot_overall_performance(
-#     dimension="MOLECULE", sorter=["替格瑞洛", "氯吡格雷", "阿司匹林"]
+#     index="MOLECULE",
+#     sorter=["替格瑞洛", "氯吡格雷", "阿司匹林", "吲哚布芬"],
+#     unit_change="百万",
+#     label_threshold=0.01,
 # )
 # r.plot_overall_performance(
-#     dimension="MOLECULE",
+#     index="MOLECULE",
+#     sorter=["替格瑞洛", "氯吡格雷", "阿司匹林", "吲哚布芬"],
 #     unit="Volume (Std Counting Unit)",
-#     sorter=["替格瑞洛", "氯吡格雷", "阿司匹林"],
+#     unit_change="百万",
+#     label_threshold=0.01,
 # )
 
-# r.plot_group_size_diff(
+# r.plot_overall_performance(
+#     index="MOLECULE",
+#     sorter=["替格瑞洛", "氯吡格雷", "阿司匹林", "吲哚布芬"],
+#     unit_change="百万",
+#     period="QTR",
+#     label_threshold=0.01,
+# )
+# r.plot_overall_performance(
+#     index="MOLECULE",
+#     sorter=["替格瑞洛", "氯吡格雷", "阿司匹林", "吲哚布芬"],
+#     unit="Volume (Std Counting Unit)",
+#     unit_change="百万",
+#     period="QTR",
+#     label_threshold=0.01,
+# )
+
+
+# r.plot_size_diff(
 #     index="PRODUCT",
-#     date=[r.latest_date()],
-#     dimension=None,
-#     column=None,
-#     adjust_scale=0.01,
-#     series_limit=250,
-#     showLabel=True,
 #     unit="Value",
-# )
-# r.plot_group_size_diff(
-#     index="PRODUCT",
-#     date=[r.latest_date()],
-#     dimension=None,
-#     column=None,
-#     adjust_scale=0.03,
-#     series_limit=250,
-#     showLabel=True,
-#     unit="Volume (Std Counting Unit)",
+#     unit_change="百万",
+#     label_limit=10,
 # )
 
-# r.plot_group_share_gr(
+# r.plot_size_diff(
 #     index="PRODUCT",
-#     date=[r.latest_date()],
-#     dimension=None,
-#     column=None,
-#     series_limit=250,
-#     adjust_scale=0.01,
-# )
-# r.plot_group_share_gr(
-#     index="PRODUCT",
-#     date=[r.latest_date()],
-#     dimension=None,
-#     column=None,
-#     series_limit=250,
-#     adjust_scale=0.02,
 #     unit="Volume (Std Counting Unit)",
+#     unit_change="百万",
+#     label_limit=10,
 # )
 
-# r.plot_share("PRODUCT", "TALCOM (SI6)", "份额", series_limit=7)
-# r.plot_share("PRODUCT", "TALCOM (SI6)", "净增长贡献", series_limit=7)
-# r.plot_share(
-#     "PRODUCT", "TALCOM (SI6)", "份额", unit="Volume (Std Counting Unit)", series_limit=7
+# r.plot_share_gr(
+#     index="PRODUCT",
+#     unit="Value",
+#     ylim=(-0.5, 1),
+#     label_limit=10,
 # )
-# r.plot_share(
-#     "PRODUCT",
-#     "TALCOM (SI6)",
-#     "净增长贡献",
+# r.plot_share_gr(
+#     index="PRODUCT",
 #     unit="Volume (Std Counting Unit)",
-#     series_limit=7,
+#     ylim=(-0.5, 1),
+#     label_limit=10,
+#     label_topy=4,
 # )
 
-# Select * from data Where PERIOD = 'MAT' And UNIT = 'Value' AND (MOLECULE in ('替格瑞洛|TICAGRELOR', '氯吡格雷|CLOPIDOGREL', '氢氯吡格雷|CLOPIDOGREL') OR PRODUCT in ('拜阿司匹灵|BAYASPIRIN         BAY'))
+
+r.plottable_latest(
+    index="PRODUCT", unit="Value", focus="TALCOM (SI6)", hue="CORPORATION"
+)
+r.plottable_latest(
+    index="PRODUCT",
+    unit="Volume (Std Counting Unit)",
+    focus="TALCOM (SI6)",
+    hue="CORPORATION",
+)
 
 # r.plot_share_trend(
-#     dimension="PRODUCT",
-#     column=None,
-#     series_limit=10,
+#     index="PRODUCT",
+#     focus="TALCOM (SI6)"
 # )
 # r.plot_share_trend(
-#     dimension="PRODUCT",
-#     column=None,
-#     unit="Volume (Std Counting Unit)",
-#     series_limit=10,
-# )
-
-# D_MAP = {
-#     "PLAVIX (SG9)": "PLAVIX (SG9)",
-#     "EN CUN (S1H)": "EN CUN (S1H)",
-#     "TALCOM (SI6)": "TALCOM (SI6)",
-#     "SHUAI XIN (LUU)": "SHUAI XIN/SHUAI TAI (LUU)",
-#     "SHUAI TAI (LUU)": "SHUAI XIN/SHUAI TAI (LUU)",
-#     "YOU LI WEI (NJ2)": "Others",
-#     "CLOPIDOGREL BISULF (HDO)": "Others",
-#     "PLAGRIL (DRL)": "Others",
-#     "DE LUN (ZGZ)": "Others",
-#     "XIN LAI LE (S-N)": "Others",
-#     "RUI WEI SHENG (JBM)": "Others",
-#     "DU QING (JYG)": "Others",
-# }
-# df["PRODUCT"] = df["PRODUCT"].map(D_MAP)
-# r = chpa(df, name="氯吡格雷市场")
-
-# r.plot_overall_performance(
-#     dimension="PRODUCT",
-# )
-# r.plot_overall_performance(
-#     dimension="PRODUCT",
+#     index="PRODUCT",
+#     focus="TALCOM (SI6)",
 #     unit="Volume (Std Counting Unit)",
 # )
 
+# r.plottable_annual(index="PRODUCT", unit="Value")
+# r.plottable_annual(index="PRODUCT", unit="Volume (Std Counting Unit)")
 
-# r = chpa(df, name="抗血小板市场")
 
-# r.plot_overall_performance(dimension="PRODUCT")
+D_MAP = {
+    "PLAVIX (SG9)": "PLAVIX (SG9)",
+    "EN CUN (S1H)": "EN CUN (S1H)",
+    "TALCOM (SI6)": "TALCOM (SI6)",
+    "SHUAI XIN (LUU)": "SHUAI XIN/SHUAI TAI (LUU)",
+    "SHUAI TAI (LUU)": "SHUAI XIN/SHUAI TAI (LUU)",
+}
+df2 = df[df["MOLECULE"] == "氯吡格雷"]
+df2["PRODUCT"] = df2["PRODUCT"].map(D_MAP).fillna("Others") # 注意，这里会影响后续出销售明细
+
+r = CHPA(df2, name="氯吡格雷市场", date_column="DATE", period_interval=3)
+
 # r.plot_overall_performance(
-#     dimension="PRODUCT",
+#     index="PRODUCT",
+#     unit_change="百万",
+#     label_threshold=0.01,
+# )
+# r.plot_overall_performance(
+#     index="PRODUCT",
 #     unit="Volume (Std Counting Unit)",
+#     unit_change="百万",
+#     label_threshold=0.01,
 # )
 
-# print(r.agg_table(index=None, dimension='PRODUCT', column='泰嘉'))
+# df3 = df[df["MOLECULE"]=="氯吡格雷"]
+# r = CHPA(df3, name="氯吡格雷市场", date_column="DATE", period_interval=3)
+
+r.plottable_latest(
+    index="PRODUCT", unit="Value", focus="TALCOM (SI6)", hue="CORPORATION"
+)
+r.plottable_latest(
+    index="PRODUCT",
+    unit="Volume (Std Counting Unit)",
+    focus="TALCOM (SI6)",
+    hue="CORPORATION",
+)
+
+# r.plottable_annual(index="PRODUCT", unit="Value")
+# r.plottable_annual(index="PRODUCT", unit="Volume (Std Counting Unit)")
