@@ -51,7 +51,7 @@ df.loc[mask, "TC IV"] = "地舒单抗"
 # 折算标准片数
 mask = df["UNIT"] == "Volume (Counting Unit)"
 df_std_volume = df.loc[mask, :]
-df_std_volume["UNIT"] = "Volume (Std Counting Unit)"
+df_std_volume["UNIT"] = "PTD"
 df = pd.concat([df, df_std_volume])
 
 
@@ -124,8 +124,8 @@ r = CHPA(df, name="骨松治疗市场", date_column="DATE", period_interval=3)
 #     unit="PTD",
 # )
 
-r.plottable_latest(index="MOLECULE", unit="Value", hue="TC IV")
-r.plottable_latest(index="MOLECULE", unit="Volume (Std Counting Unit)", hue="TC IV")
+# r.plottable_latest(index="MOLECULE", unit="Value", hue="TC IV")
+# r.plottable_latest(index="MOLECULE", unit="PTD", hue="TC IV")
 
 
 # r.plot_share_trend(
@@ -159,15 +159,15 @@ r.plottable_latest(index="MOLECULE", unit="Volume (Std Counting Unit)", hue="TC 
 # r.plot_share_gr(index="PRODUCT", unit="PTD", ylim=(-0.5, 2), label_topy=3)
 
 
-r.plottable_latest(
-    index="PRODUCT", unit="Value", focus="XIN FU TAI (XIL)", hue="CORPORATION"
-)
-r.plottable_latest(
-    index="PRODUCT",
-    unit="Volume (Std Counting Unit)",
-    focus="XIN FU TAI (XIL)",
-    hue="CORPORATION",
-)
+# r.plottable_latest(
+#     index="PRODUCT", unit="Value", focus="XIN FU TAI (XIL)", hue="CORPORATION"
+# )
+# r.plottable_latest(
+#     index="PRODUCT",
+#     unit="PTD",
+#     focus="XIN FU TAI (XIL)",
+#     hue="CORPORATION",
+# )
 
 # r.plot_share_trend(
 #     index="PRODUCT",
@@ -192,7 +192,7 @@ r = CHPA(df2, name="特立帕肽市场", date_column="DATE", period_interval=3)
 # )
 # r.plot_overall_performance(
 #     index="PACKAGE",
-#     unit="Volume (Std Counting Unit)",
+#     unit="PTD",
 #     unit_change="千",
 # )
 
@@ -204,20 +204,20 @@ r = CHPA(df2, name="特立帕肽市场", date_column="DATE", period_interval=3)
 # )
 # r.plot_overall_performance(
 #     index="PACKAGE",
-#     unit="Volume (Std Counting Unit)",
+#     unit="PTD",
 #     unit_change="千",
 #     period="QTR",
 # )
 
-# r.plottable_latest(
-#     index="PACKAGE",
-#     unit="Value",
-#     hue="CORPORATION",
-#     fontsize=18,
-# )
-# r.plottable_latest(
-#     index="PACKAGE",
-#     unit="Volume (Std Counting Unit)",
-#     hue="CORPORATION",
-#     fontsize=18,
-# )
+r.plottable_latest(
+    index="PACKAGE",
+    unit="Value",
+    hue="CORPORATION",
+    fontsize=18,
+)
+r.plottable_latest(
+    index="PACKAGE",
+    unit="PTD",
+    hue="CORPORATION",
+    fontsize=18,
+)

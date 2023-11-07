@@ -1,14 +1,14 @@
-from CHPA2 import CHPA, convert_std_volume
+from CHPA2 import CHPA, convert_std_volume, extract_strength
 from sqlalchemy import create_engine
 import pandas as pd
 
 df_index = pd.read_excel("肾性贫血定义市场分子PTD系数.xlsx", engine="openpyxl")
-df_index["PRODUCT_STR"] = df_index["PRODUCT"].apply(lambda x: f"'{x}'")
-str = ", ".join(df_index["PRODUCT_STR"])
-
+df_index["PACKAGE_STR"] = df_index["PACKAGE"].apply(lambda x: f"'{x}'")
+str = ", ".join(df_index["PACKAGE_STR"])
+print(df_index)
 engine = create_engine("mssql+pymssql://(local)/CHPA_1806")
 table_name = "data"
-condition = f"[PRODUCT] in ({str})"
+condition = f"[PACKAGE] in ({str})"
 
 # condition = "([TC III] in ('B03A HAEMATINICS,IRON & COMBS|补血药，铁剂和所有联合用药', \
 #     'B03C ERYTHROPOIETIN PRODUCTS|红细胞生成素类药物', \
@@ -16,6 +16,7 @@ condition = f"[PRODUCT] in ({str})"
 sql = "SELECT * FROM " + table_name + " WHERE " + condition
 
 df = pd.read_sql(sql=sql, con=engine)
+df.to_excel("test.xlsx")
 print(df)
 
 # 定义市场简化命名及调整系数
@@ -39,6 +40,41 @@ df["TC III"] = (
 )
 df["MOLECULE"] = df["MOLECULE"].str.split("|").str[1]
 df["PRODUCT"] = df["PRODUCT"].apply(lambda x: x[:-3].strip() + " (" + x[-3:] + ")")
+df["STRENGTH"] = df["PACKAGE"].apply(extract_strength)
+
+mask = df["PACKAGE"].str.contains(" AMP | VIAL | DRY | IV | INFUSION ")
+df.loc[mask, "CLASS"] = "静脉铁"
+df["CLASS"].fillna("口服铁", inplace=True)
+
+
+# IQVIA原数据通用名只有二价铁/三价铁，并且中文通用名错误，此处进行归类和修正
+
+mask = (df["MOLECULE"] == "多糖铁复合物") & (df["STRENGTH"] == "500MG")
+df.loc[mask, "MOLECULE"] = "二异麦芽糖铁"
+mask = (df["MOLECULE"] == "多糖铁复合物") & (df["CLASS"] == "静脉铁")
+df.loc[mask, "MOLECULE"] = "蔗糖铁"
+mask = df["PRODUCT"] == "IRON PROTEINSUCCIN (JY5)"
+df.loc[mask, "MOLECULE"] = "蛋白琥珀酸铁"
+mask = (df["MOLECULE"] == "富马酸亚铁") & (df["STRENGTH"] == "150MG")
+df.loc[mask, "MOLECULE"] = "多糖铁复合物"
+
+mask = (df["PRODUCT"].str.contains("SUCCINATE")) | (
+    df["PRODUCT"].isin(["SU LI FEI (JNG)", "LI FEI LONG (H3U)"])
+)
+df.loc[mask, "MOLECULE"] = "琥珀酸亚铁"
+mask = df["PRODUCT"].str.contains("FUMARATE")
+df.loc[mask, "MOLECULE"] = "富马酸亚铁"
+mask = df["PRODUCT"].str.contains("LACTATE") | (
+    df["PRODUCT"].isin(["LA KE FEI (TGD)", "DAN ZHU (TAJ)", "TIE XIN (JFH)"])
+)
+df.loc[mask, "MOLECULE"] = "乳酸亚铁"
+mask = df["PRODUCT"].str.contains("GLUCONATE") | (
+    df["PRODUCT"].isin(["XU TAI (ZJ&)", "XUE YI (HT8)"])
+)
+df.loc[mask, "MOLECULE"] = "葡萄糖酸亚铁"
+mask = (df["MOLECULE"] == "富马酸亚铁") & (df["PRODUCT"].str.contains("SULFATE"))
+df.loc[mask, "MOLECULE"] = "硫酸亚铁"
+
 # df["PRODUCT"] = (
 #     df["PRODUCT"]
 #     .str.split("|")
@@ -59,15 +95,18 @@ df_std_volume = df.loc[mask, :]
 df_std_volume["UNIT"] = "PTD"
 df = pd.concat([df, df_std_volume])
 
-df["PRODUCT_PACKAGE"] = (
-    df["PRODUCT"].apply(lambda x: x.split("(")[0].strip()) + " " + df["PACKAGE"]
-)
+# df["PRODUCT_PACKAGE"] = (
+#     df["PRODUCT"].apply(lambda x: x.split("(")[0].strip()) + " " + df["PACKAGE"]
+# )
 
 df_index.drop_duplicates(subset="PACKAGE", inplace=True)
-for index, value in df_index.iterrows():
-    mask = (df["PRODUCT_PACKAGE"] == value[4]) & (df["UNIT"] == "PTD")
-    df.loc[mask, "AMOUNT"] = df.loc[mask, "AMOUNT"] * value[8]
 
+for index, value in df_index.iterrows():
+    mask = (df["PACKAGE"] == value["PACKAGE"]) & (df["UNIT"] == "PTD")
+    df.loc[mask, "AMOUNT"] = df.loc[mask, "AMOUNT"] * value["盒数换算系数(乘)"]
+
+
+# df.to_excel("test.xlsx")
 
 # def convert_std_volume(df, dimension, target, strength, ratio):
 #     column_unit = "UNIT"
@@ -115,10 +154,10 @@ for index, value in df_index.iterrows():
 
 r = CHPA(df, name="肾性贫血市场", date_column="DATE", period_interval=3)
 
-r.plot_overall_performance(index="TC III", unit_change="百万")
-r.plot_overall_performance(index="TC III", unit="PTD", unit_change="百万")
-r.plot_overall_performance(index="TC III", period="QTR", unit_change="百万")
-r.plot_overall_performance(index="TC III", period="QTR", unit="PTD", unit_change="百万")
+# r.plot_overall_performance(index="TC III", unit_change="百万")
+# r.plot_overall_performance(index="TC III", unit="PTD", unit_change="百万")
+# r.plot_overall_performance(index="TC III", period="QTR", unit_change="百万")
+# r.plot_overall_performance(index="TC III", period="QTR", unit="PTD", unit_change="百万")
 
 # r.plot_size_diff(
 #     index="PRODUCT",
@@ -129,10 +168,11 @@ r.plot_overall_performance(index="TC III", period="QTR", unit="PTD", unit_change
 #     unit="PTD",
 #     unit_change="百万",
 # )
-# r.plot_share_gr(index="PRODUCT", ylim=(-0.5, 1), label_topy=0)
-# r.plot_share_gr(index="PRODUCT", ylim=(-0.5, 1), unit="PTD", label_topy=0)
-r.plottable_latest(index="PRODUCT", hue="CORPORATION")
-r.plottable_latest(index="PRODUCT", unit="PTD", hue="CORPORATION")
+# r.plot_share_gr(index="PRODUCT", ylim=(-0.4, 0.4), label_topy=0)
+# r.plot_share_gr(index="PRODUCT", ylim=(-0.4, 0.6), unit="PTD", label_topy=0)
+
+# r.plottable_latest(index="PRODUCT", hue="CORPORATION")
+# r.plottable_latest(index="PRODUCT", unit="PTD", hue="CORPORATION")
 
 # r.plot_share_trend(index="PRODUCT")
 # r.plot_share_trend(index="PRODUCT", unit="PTD")
@@ -148,22 +188,23 @@ r = CHPA(df2, name="EPO+HIF市场", date_column="DATE", period_interval=3)
 # r.plot_overall_performance(index="TC III", period="QTR", unit_change="百万")
 # r.plot_overall_performance(index="TC III", period="QTR", unit="PTD", unit_change="百万")
 
-# r.plot_size_diff(
-#     index="PRODUCT",
-#     unit_change="百万",
-# )
-# r.plot_size_diff(
-#     index="PRODUCT",
-#     unit="PTD",
-#     unit_change="百万",
-# )
-# r.plot_share_gr(index="PRODUCT", ylim=(-0.5, 1), label_topy=0)
-# r.plot_share_gr(index="PRODUCT", ylim=(-0.5, 1), unit="PTD", label_topy=0)
-# r.plottable_latest(index="PRODUCT", hue="CORPORATION")
-# r.plottable_latest(index="PRODUCT", unit="PTD", hue="CORPORATION")
+r.plot_size_diff(
+    index="PRODUCT",
+    unit_change="百万",
+)
+r.plot_size_diff(
+    index="PRODUCT",
+    unit="PTD",
+    unit_change="百万",
+)
+r.plot_share_gr(index="PRODUCT", ylim=(-0.4, 0.4), label_topy=0)
+r.plot_share_gr(index="PRODUCT", ylim=(-0.4, 0.6), unit="PTD", label_topy=0)
 
-# r.plot_share_trend(index="PRODUCT")
-# r.plot_share_trend(index="PRODUCT", unit="PTD")
+r.plottable_latest(index="PRODUCT", hue="CORPORATION")
+r.plottable_latest(index="PRODUCT", unit="PTD", hue="CORPORATION")
 
-# r.plottable_annual(index="PRODUCT")
-# r.plottable_annual(index="PRODUCT", unit="PTD")
+r.plot_share_trend(index="PRODUCT")
+r.plot_share_trend(index="PRODUCT", unit="PTD")
+
+r.plottable_annual(index="PRODUCT")
+r.plottable_annual(index="PRODUCT", unit="PTD")

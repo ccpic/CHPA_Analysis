@@ -28,7 +28,7 @@ df["STRENGTH"] = df["PACKAGE"].apply(extract_strength)
 
 mask = df["UNIT"] == "Volume (Counting Unit)"
 df_std_volume = df.loc[mask, :]
-df_std_volume["UNIT"] = "Volume (Std Counting Unit)"
+df_std_volume["UNIT"] = "PTD"
 df = pd.concat([df, df_std_volume])
 
 mask = df["MOLECULE"].isin(["奥美沙坦酯氨氯地平片", "舒脈康膜衣錠"])
@@ -69,31 +69,35 @@ df.loc[mask, "FDC CLASS"] = "A+D"
 r = CHPA(df, name="RAAS复方制剂市场", date_column="DATE", period_interval=3)
 
 # r.plot_overall_performance(index="FDC CLASS",unit_change="百万")
-# r.plot_overall_performance(index="FDC CLASS", unit="Volume (Std Counting Unit)",unit_change="百万")
+# r.plot_overall_performance(index="FDC CLASS", unit="PTD",unit_change="百万")
+
+# r.plot_overall_performance(index="FDC CLASS",unit_change="百万", period="QTR")
+# r.plot_overall_performance(index="FDC CLASS", unit="PTD",unit_change="百万", period="QTR")
 
 # r.plot_overall_performance(index="VBP",unit_change="百万")
-# r.plot_overall_performance(index="VBP", unit="Volume (Std Counting Unit)",unit_change="百万")
+# r.plot_overall_performance(index="VBP", unit="PTD",unit_change="百万")
 
 # r.plot_size_diff(index="MOLECULE", unit_change="百万", label_limit=12)
 # r.plot_size_diff(
 #     index="MOLECULE",
-#     unit="Volume (Std Counting Unit)",
+#     unit="PTD",
 #     unit_change="百万",
 #     label_limit=12,
 # )
 # r.plot_share_gr(index="MOLECULE")
 # r.plot_share_gr(
 #     index="MOLECULE",
-#     unit="Volume (Std Counting Unit)",
+#     unit="PTD",
 # )
+
 # r.plottable_latest(index="MOLECULE", hue="FDC CLASS")
-# r.plottable_latest(index="MOLECULE", unit="Volume (Std Counting Unit)", hue="FDC CLASS")
+# r.plottable_latest(index="MOLECULE", unit="PTD", hue="FDC CLASS")
 
 # r.plot_share_trend(index="MOLECULE")
-# r.plot_share_trend(index="MOLECULE", unit="Volume (Std Counting Unit)")
+# r.plot_share_trend(index="MOLECULE", unit="PTD")
 
 # r.plottable_annual(index="MOLECULE")
-# r.plottable_annual(index="MOLECULE", unit="Volume (Std Counting Unit)")
+# r.plottable_annual(index="MOLECULE", unit="PTD")
 
 # r.plot_size_diff(
 #     index="PRODUCT",
@@ -102,24 +106,24 @@ r = CHPA(df, name="RAAS复方制剂市场", date_column="DATE", period_interval=
 # )
 # r.plot_size_diff(
 #     index="PRODUCT",
-#     unit="Volume (Std Counting Unit)",
+#     unit="PTD",
 #     unit_change="百万",
 #     label_limit=20,
 # )
 # r.plot_share_gr(index="PRODUCT", ylim=(-0.5, 1), label_topy=4)
 # r.plot_share_gr(
-#     index="PRODUCT", unit="Volume (Std Counting Unit)", ylim=(-0.5, 1), label_topy=4
+#     index="PRODUCT", unit="PTD", ylim=(-0.5, 1), label_topy=4)
+
+# r.plottable_latest(index="PRODUCT", hue="CORPORATION")
+# r.plottable_latest(
+#     index="PRODUCT", unit="PTD", hue="CORPORATION"
 # )
-r.plottable_latest(index="PRODUCT", hue="CORPORATION")
-r.plottable_latest(
-    index="PRODUCT", unit="Volume (Std Counting Unit)", hue="CORPORATION"
-)
 
 # r.plot_share_trend(index="PRODUCT")
-# r.plot_share_trend(index="PRODUCT", unit="Volume (Std Counting Unit)")
+# r.plot_share_trend(index="PRODUCT", unit="PTD")
 
 # r.plottable_annual(index="PRODUCT")
-# r.plottable_annual(index="PRODUCT", unit="Volume (Std Counting Unit)")
+# r.plottable_annual(index="PRODUCT", unit="PTD")
 
 df2 = df[
     df["TC IV"].isin(
@@ -136,14 +140,19 @@ df2.loc[mask, "FDC CLASS"] = "ARB+C"
 
 r = CHPA(df2, name="A+C复方制剂市场", date_column="DATE", period_interval=3)
 
-# r.plot_overall_performance(index="FDC CLASS",unit_change="百万")
-# r.plot_overall_performance(index="FDC CLASS", unit="Volume (Std Counting Unit)",unit_change="百万")
+# r.plot_overall_performance(index="FDC CLASS", unit_change="百万")
+# r.plot_overall_performance(index="FDC CLASS", unit="PTD", unit_change="百万")
+# r.plot_overall_performance(index="FDC CLASS", unit_change="百万", period="QTR")
+# r.plot_overall_performance(
+#     index="FDC CLASS", unit="PTD", unit_change="百万", period="QTR"
+# )
+
 
 # r.plot_overall_performance(index="MOLECULE",unit_change="百万")
-# r.plot_overall_performance(index="MOLECULE", unit="Volume (Std Counting Unit)",unit_change="百万")
+# r.plot_overall_performance(index="MOLECULE", unit="PTD",unit_change="百万")
 
 # r.plot_overall_performance(index="VBP",unit_change="百万")
-# r.plot_overall_performance(index="VBP", unit="Volume (Std Counting Unit)",unit_change="百万")
+# r.plot_overall_performance(index="VBP", unit="PTD",unit_change="百万")
 
 # r.plot_size_diff(
 #     index="MOLECULE",
@@ -151,14 +160,20 @@ r = CHPA(df2, name="A+C复方制剂市场", date_column="DATE", period_interval=
 # )
 # r.plot_size_diff(
 #     index="MOLECULE",
-#     unit="Volume (Std Counting Unit)",
+#     unit="PTD",
 #     unit_change="百万",
 # )
 # r.plot_share_gr(index="MOLECULE", label_topy=4)
-# r.plot_share_gr(index="MOLECULE", unit="Volume (Std Counting Unit)", label_topy=4)
-# r.plottable_latest(index="MOLECULE", hue="FDC CLASS", fontsize=20)
-# r.plottable_latest(index="MOLECULE", unit="Volume (Std Counting Unit)", hue="FDC CLASS", fontsize=20)
+# r.plot_share_gr(index="MOLECULE", unit="PTD", label_topy=4)
 
+# r.plottable_latest(index="MOLECULE", hue="FDC CLASS", fontsize=20)
+# r.plottable_latest(index="MOLECULE", unit="PTD", hue="FDC CLASS", fontsize=20)
+
+# r.plot_share_trend(index="MOLECULE")
+# r.plot_share_trend(index="MOLECULE", unit="PTD")
+
+# r.plottable_annual(index="MOLECULE")
+# r.plottable_annual(index="MOLECULE", unit="PTD")
 
 # r.plot_size_diff(
 #     index="PRODUCT",
@@ -167,22 +182,23 @@ r = CHPA(df2, name="A+C复方制剂市场", date_column="DATE", period_interval=
 # )
 # r.plot_size_diff(
 #     index="PRODUCT",
-#     unit="Volume (Std Counting Unit)",
+#     unit="PTD",
 #     unit_change="百万",
 #     label_limit=9,
 # )
 # r.plot_share_gr(index="PRODUCT", ylim=(-0.5, 0.5), label_topy=4)
 # r.plot_share_gr(
-#     index="PRODUCT", unit="Volume (Std Counting Unit)", ylim=(-0.5, 0.5), label_topy=4
+#     index="PRODUCT", unit="PTD", ylim=(-0.5, 0.5), label_topy=4
 # )
+
 # r.plottable_latest(index="PRODUCT", hue="CORPORATION")
-# r.plottable_latest(index="PRODUCT", unit="Volume (Std Counting Unit)", hue="CORPORATION")
+# r.plottable_latest(index="PRODUCT", unit="PTD", hue="CORPORATION")
 
 # r.plot_share_trend(index="PRODUCT")
-# r.plot_share_trend(index="PRODUCT", unit="Volume (Std Counting Unit)")
+# r.plot_share_trend(index="PRODUCT", unit="PTD")
 
 # r.plottable_annual(index="PRODUCT")
-# r.plottable_annual(index="PRODUCT", unit="Volume (Std Counting Unit)")
+# r.plottable_annual(index="PRODUCT", unit="PTD")
 
 
 df3 = df[
@@ -207,14 +223,15 @@ r = CHPA(df3, name="A+D复方制剂市场", date_column="DATE", period_interval=
 
 
 # r.plot_overall_performance(index="FDC CLASS", unit_change="百万")
+# r.plot_overall_performance(index="FDC CLASS", unit="PTD", unit_change="百万")
+
+# r.plot_overall_performance(index="FDC CLASS", unit_change="百万", period="QTR")
 # r.plot_overall_performance(
-#     index="FDC CLASS", unit="Volume (Std Counting Unit)", unit_change="百万"
+#     index="FDC CLASS", unit="PTD", unit_change="百万", period="QTR"
 # )
 
 # r.plot_overall_performance(index="VBP", unit_change="百万")
-# r.plot_overall_performance(
-#     index="VBP", unit="Volume (Std Counting Unit)", unit_change="百万"
-# )
+# r.plot_overall_performance(index="VBP", unit="PTD", unit_change="百万")
 
 
 # r.plot_size_diff(
@@ -223,19 +240,20 @@ r = CHPA(df3, name="A+D复方制剂市场", date_column="DATE", period_interval=
 # )
 # r.plot_size_diff(
 #     index="MOLECULE",
-#     unit="Volume (Std Counting Unit)",
+#     unit="PTD",
 #     unit_change="百万",
 # )
 # r.plot_share_gr(index="MOLECULE", label_topy=4)
-# r.plot_share_gr(index="MOLECULE", unit="Volume (Std Counting Unit)", label_topy=4)
+# r.plot_share_gr(index="MOLECULE", unit="PTD", label_topy=4)
+
 # r.plottable_latest(index="MOLECULE", hue="FDC CLASS")
-# r.plottable_latest(index="MOLECULE", unit="Volume (Std Counting Unit)", hue="FDC CLASS")
+# r.plottable_latest(index="MOLECULE", unit="PTD", hue="FDC CLASS")
 
 # r.plot_share_trend(index="MOLECULE")
-# r.plot_share_trend(index="MOLECULE", unit="Volume (Std Counting Unit)")
+# r.plot_share_trend(index="MOLECULE", unit="PTD")
 
 # r.plottable_annual(index="MOLECULE")
-# r.plottable_annual(index="MOLECULE", unit="Volume (Std Counting Unit)")
+# r.plottable_annual(index="MOLECULE", unit="PTD")
 
 # r.plot_size_diff(
 #     index="PRODUCT",
@@ -243,18 +261,19 @@ r = CHPA(df3, name="A+D复方制剂市场", date_column="DATE", period_interval=
 # )
 # r.plot_size_diff(
 #     index="PRODUCT",
-#     unit="Volume (Std Counting Unit)",
+#     unit="PTD",
 #     unit_change="百万",
 # )
-# r.plot_share_gr(index="PRODUCT", ylim=(-0.5,1), label_topy=0)
-# r.plot_share_gr(index="PRODUCT", unit="Volume (Std Counting Unit)",ylim=(-0.5,1), label_topy=0)
+# r.plot_share_gr(index="PRODUCT", ylim=(-0.4,0.6), label_topy=0)
+# r.plot_share_gr(index="PRODUCT", unit="PTD",ylim=(-0.4,0.6), label_topy=0)
+
 # r.plottable_latest(index="PRODUCT", hue="CORPORATION")
 # r.plottable_latest(
-#     index="PRODUCT", unit="Volume (Std Counting Unit)", hue="CORPORATION"
+#     index="PRODUCT", unit="PTD", hue="CORPORATION"
 # )
 
 # r.plot_share_trend(index="PRODUCT")
-# r.plot_share_trend(index="PRODUCT", unit="Volume (Std Counting Unit)")
+# r.plot_share_trend(index="PRODUCT", unit="PTD")
 
 # r.plottable_annual(index="PRODUCT")
-# r.plottable_annual(index="PRODUCT", unit="Volume (Std Counting Unit)")
+# r.plottable_annual(index="PRODUCT", unit="PTD")

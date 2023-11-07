@@ -10,7 +10,7 @@ from dataframe import DfAnalyzer
 from figure import GridFigure
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from typing import Optional, Tuple, List
+from typing import Optional, Tuple, List, Dict
 import re
 
 try:
@@ -31,6 +31,7 @@ D_TEXT = {
     "MQT": "滚动季",
     "QTR": "季度",
     "VBP": "VBP状态",
+    "CLASS": "品类",
 }
 
 
@@ -45,7 +46,7 @@ def extract_strength(text: str) -> Optional[str]:
 def convert_std_volume(df, dimension, target, strength, ratio):
     column_unit = "UNIT"
     column_strength = "STRENGTH"
-    unit_std_volume = "Volume (Std Counting Unit)"
+    unit_std_volume = "PTD"
     column_value = "AMOUNT"
     mask = (
         (df[dimension] == target)
@@ -64,6 +65,7 @@ class CHPA(DfAnalyzer):
         period: Literal["MAT", "QTR"] = "MAT",
         sorter: List[str] = None,
         label_threshold: float = 0.02,
+        color_dict: Dict[str, str] = None,
     ):
         df = (
             self.get_pivot(
@@ -94,6 +96,7 @@ class CHPA(DfAnalyzer):
             style={
                 "title": f"{self.name}分{text_index}{text_unit}{text_period}趋势",
             },
+            color_dict=color_dict,
         )
 
         if period == "MAT":
@@ -116,12 +119,75 @@ class CHPA(DfAnalyzer):
                 "xticklabel_rotation": 0 if period == "MAT" else 90,
             },
             label_formatter=label_formatter,
-            show_gr=True if period == "MAT" else False,
+            show_gr_text=True if period == "MAT" else False,
             show_total_bar=True if (period == "MAT" and df.shape[0] > 1) else False,
             show_total_label=True if df.shape[0] > 1 else False,
             bar_width=0.5 if period == "MAT" else 0.8,
             label_fontsize=11 if period == "MAT" else 9,
             label_threshold=label_threshold,
+        )
+
+        f.save()
+
+        return df
+
+    def plot_trend_with_gr(
+        self,
+        index: str,
+        unit: Literal["Value", "Volume (Std Counting Unit)"] = "Value",
+        unit_change: Optional[Literal["十亿", "亿", "百万", "万", "千"]] = None,
+        period: Literal["MAT", "QTR"] = "MAT",
+        sorter: List[str] = None,
+        label_threshold: float = 0.02,
+        color_dict: Dict[str, str] = None,
+        width: float = 15,
+        height: float = 6,
+    ):
+        df = (
+            self.get_pivot(
+                index=index,
+                columns=self.date_column,
+                values="AMOUNT",
+                query_str=f"UNIT=='{unit}' and PERIOD=='{period}'",
+            )
+            .div(self.unit_change(unit_change))
+            .reindex(sorter)
+        )
+
+        if period == "MAT":
+            df = df.iloc[:, [-13, -9, -5, -1]]
+
+        print(df)
+
+        text_index = D_TEXT.get(index, index)
+        text_unit = D_TEXT.get(unit, unit)
+        text_period = D_TEXT.get(period)
+        text_unit_change = "" if unit_change is None else f" ({unit_change})"
+
+        f = plt.figure(
+            FigureClass=GridFigure,
+            width=width,
+            height=height,
+            fontsize=11,
+            style={
+                "title": f"{self.name}分{text_index}{text_unit}{text_period}趋势"
+                if index is not None
+                else f"{self.name}{text_unit}{text_period}趋势",
+            },
+            color_dict=color_dict,
+        )
+
+        f.plot(
+            kind="bar",
+            data=df.transpose(),
+            ax_index=0,
+            style={
+                "ylabel": f"{text_period}{text_unit}{text_unit_change}",
+                "xticklabel_rotation": 90 if period=="QTR" else 0,
+            },
+            label_threshold=label_threshold,
+            show_gr_line=True,
+            period_change=4 if period=="QTR" else 1
         )
 
         f.save()
@@ -441,6 +507,7 @@ class CHPA(DfAnalyzer):
         width: int = 28,
         height: int = 10,
         fontsize: Optional[float] = None,
+        show_total: bool = False,
     ):
         df = self.ptable(
             index=index,
@@ -449,6 +516,7 @@ class CHPA(DfAnalyzer):
             values="AMOUNT",
             query_str=f"UNIT=='{unit}' and PERIOD=='{period}'",
             fillna=True,
+            show_total=show_total,
         )
 
         print(df)
@@ -592,6 +660,9 @@ class CHPA(DfAnalyzer):
             focus_rindex = df.index.get_loc(focus)
             if focus_rindex <= 20:
                 table.rows[focus_rindex].set_facecolor("lightcyan")
+
+        if show_total:
+            table.rows[df.head(topn).shape[0] - 1].set_facecolor("azure")
 
         fig.savefig(
             f"plots/{title}.png",

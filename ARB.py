@@ -99,6 +99,7 @@ vbp_molecules = [
     "赖诺普利",
     "依那普利",
     "培哚普利",
+    "贝那普利",
     "替米沙坦",
     "缬沙坦氨氯地平",
     "缬沙坦氢氯噻嗪",
@@ -109,6 +110,8 @@ mask = df["MOLECULE"].isin(vbp_molecules)
 df.loc[mask, "VBP"] = "VBP品种"
 mask = df["MOLECULE"].isin(vbp_molecules) == False
 df.loc[mask, "VBP"] = "非VBP品种"
+
+# df = df[df["VBP"] == "非VBP品种"]
 
 # ARNI销量打55折
 if condition == condition_raasi or condition_raasi_plain_arni:
@@ -162,6 +165,21 @@ df.loc[mask, "TC III"] = "A+D"
 mask = df["MOLECULE"].str.contains("沙库巴曲缬沙坦")
 df.loc[mask, "TC III"] = "ARNI"
 
+# d_rename = {
+#     "ENTRESTO (NVR)": "诺欣妥\n沙库巴曲缬沙坦",
+#     "XIN LI TAN (SI6)": "信立坦\n阿利沙坦",
+#     "AMLODIPINE BESYLAT (S5O)": "地奥氨贝\n贝那普利氨氯地平",
+#     "BAI AN XIN (GRU)": "百安新\n贝那普利氨氯地平",
+#     "OLMETEC PLUS (DSC)": "复傲坦\n奥美沙坦氢氯噻嗪",
+#     "COVERAM (SVR)": "开素达\n培哚普利氨氯地平",
+#     "BIPREL (TSV)": "百普乐\n培哚普利吲达帕胺",
+#     "RUI SU TAN (R7R)": "瑞素坦\n雷米普利",
+#     "TIAN SHU PING (NJ2)": "天舒平\n奥美沙坦氨氯地平",
+#     "RUI TUO PING (JSH)": "瑞妥平\n阿齐沙坦",
+#     "EDARBI (TAK)": "易达比\n美阿沙坦",
+# }
+
+# df["PRODUCT"] = df["PRODUCT"].map(d_rename).fillna(df["PRODUCT"])
 
 # writer = pd.ExcelWriter('output.xlsx')
 # df.to_excel(writer,'Sheet1')
@@ -214,7 +232,8 @@ r = CHPA(df, name="RAAS+ARNI市场", date_column="DATE", period_interval=3)
 # )
 
 # r.plot_overall_performance(
-#     index="VBP", unit_change="百万"
+#     index="VBP",
+#     unit_change="百万",
 # )
 # r.plot_overall_performance(
 #     index="VBP",
@@ -227,6 +246,7 @@ r = CHPA(df, name="RAAS+ARNI市场", date_column="DATE", period_interval=3)
 #     unit="Value",
 #     unit_change="百万",
 #     label_limit=20,
+#     label_topy=6,
 # )
 
 # r.plot_size_diff(
@@ -234,64 +254,88 @@ r = CHPA(df, name="RAAS+ARNI市场", date_column="DATE", period_interval=3)
 #     unit="Volume (Std Counting Unit)",
 #     unit_change="百万",
 #     label_limit=20,
+#     label_topy=9,
 # )
 
-# r.plot_share_gr(index="MOLECULE", unit="Value", ylim=(-0.5, 1.5))
-# r.plot_share_gr(index="MOLECULE", unit="Volume (Std Counting Unit)", ylim=(-0.5, 1.5),label_topy=2)
-
-
-# r.plottable_latest(index="MOLECULE", unit="Value", focus="阿利沙坦", hue="TC III")
-# r.plottable_latest(index="MOLECULE", unit="Volume (Std Counting Unit)", focus="阿利沙坦", hue="TC III")
-
-# r.plot_share_trend(
+# r.plot_share_gr(
 #     index="MOLECULE",
-#     focus="阿利沙坦"
+#     unit="Value",
+#     ylim=(-0.5, 1),
+#     label_topy=6,
 # )
-# r.plot_share_trend(
+# r.plot_share_gr(
 #     index="MOLECULE",
-#     focus="阿利沙坦",
 #     unit="Volume (Std Counting Unit)",
+#     ylim=(-0.5, 1),
+#     label_topy=6,
+# )
+
+
+# r.plottable_latest(
+#     index="MOLECULE", unit="Value", focus="阿利沙坦", hue="TC III"
+# )
+# r.plottable_latest(
+#     index="MOLECULE",
+#     unit="Volume (Std Counting Unit)",
+#     focus="阿利沙坦",
+#     hue="TC III",
+# )
+
+# r.plot_share_trend(index="MOLECULE", focus="阿利沙坦")
+# r.plot_share_trend(
+#     index="MOLECULE", focus="阿利沙坦", unit="Volume (Std Counting Unit)"
 # )
 
 # r.plottable_annual(index="MOLECULE", unit="Value", focus="阿利沙坦")
 # r.plottable_annual(index="MOLECULE", unit="Volume (Std Counting Unit)", focus="阿利沙坦")
 
 
+# r.plot_size_diff(index="PRODUCT", unit="Value", unit_change="百万")
+
 # r.plot_size_diff(
+#     index="PRODUCT", unit="Volume (Std Counting Unit)", unit_change="百万"
+# )
+
+# r.plot_share_gr(
 #     index="PRODUCT",
 #     unit="Value",
-#     unit_change="百万",
+#     ylim=(-1, 1.5),
+#     label_topy=4,
 # )
-
-# r.plot_size_diff(
+# r.plot_share_gr(
 #     index="PRODUCT",
 #     unit="Volume (Std Counting Unit)",
-#     unit_change="百万",
+#     ylim=(-1, 1.5),
+#     label_topy=0,
 # )
-
-# r.plot_share_gr(index="PRODUCT", unit="Value", ylim=(-1, 3))
-# r.plot_share_gr(index="PRODUCT", unit="Volume (Std Counting Unit)", ylim=(-1, 4), label_topy=4)
 
 
 # r.plottable_latest(
-#     index="PRODUCT", unit="Value", focus="XIN LI TAN (SI6)", hue="CORPORATION"
+#     index="PRODUCT",
+#     unit="Value",
+#     focus="XIN LI TAN (SI6)",
+#     hue="CORPORATION",
+#     period="QTR",
 # )
 # r.plottable_latest(
 #     index="PRODUCT",
 #     unit="Volume (Std Counting Unit)",
 #     focus="XIN LI TAN (SI6)",
 #     hue="CORPORATION",
+#     period="QTR",
 # )
 
-# r.plot_share_trend(
-#     index="PRODUCT",
-#     focus="XIN LI TAN (SI6)"
-# )
-# r.plot_share_trend(
-#     index="PRODUCT",
-#     focus="XIN LI TAN (SI6)",
-#     unit="Volume (Std Counting Unit)",
-# )
+r.plot_share_trend(
+    index="PRODUCT",
+    focus="XIN LI TAN (SI6)",
+    period="QTR",
+)
+r.plot_share_trend(
+    index="PRODUCT",
+    focus="XIN LI TAN (SI6)",
+    unit="Volume (Std Counting Unit)",
+    period="QTR",
+)
 
 # r.plottable_annual(index="PRODUCT", unit="Value")
 # r.plottable_annual(index="PRODUCT", unit="Volume (Std Counting Unit)")
@@ -378,7 +422,7 @@ r = CHPA(df2, name="RAAS平片+ARNI市场", date_column="DATE", period_interval=
 # )
 
 # r.plot_share_gr(index="PRODUCT", unit="Value", ylim=(-1, 1))
-# r.plot_share_gr(index="PRODUCT", unit="Volume (Std Counting Unit)", ylim=(-1, 1), label_topy=4)
+# r.plot_share_gr(index="PRODUCT", unit="Volume (Std Counting Unit)", ylim=(-1, 1.5), label_topy=4)
 
 
 # r.plottable_latest(index="PRODUCT", unit="Value", focus="XIN LI TAN (SI6)", hue="CORPORATION")
@@ -447,8 +491,8 @@ r = CHPA(df2, name="ARB市场", date_column="DATE", period_interval=3)
 #     label_limit=20,
 # )
 
-# r.plot_share_gr(index="MOLECULE", unit="Value", ylim=(-0.3, 0.3))
-# r.plot_share_gr(index="MOLECULE", unit="Volume (Std Counting Unit)", ylim=(-0.3, 0.3),label_topy=2)
+# r.plot_share_gr(index="MOLECULE", unit="Value", ylim=(-0.2, 0.2))
+# r.plot_share_gr(index="MOLECULE", unit="Volume (Std Counting Unit)", ylim=(-0.2, 0.2),label_topy=2)
 
 
 # r.plottable_latest(index="MOLECULE", unit="Value", focus="阿利沙坦")
@@ -481,10 +525,10 @@ r = CHPA(df2, name="ARB市场", date_column="DATE", period_interval=3)
 # r.plot_share_gr(index="PRODUCT", unit="Volume (Std Counting Unit)", ylim=(-1, 1), label_topy=1)
 
 
-r.plottable_latest(index="PRODUCT", unit="Value", focus="XIN LI TAN (SI6)", hue="CORPORATION")
-r.plottable_latest(
-    index="PRODUCT", unit="Volume (Std Counting Unit)", focus="XIN LI TAN (SI6)", hue="CORPORATION"
-)
+# r.plottable_latest(index="PRODUCT", unit="Value", focus="XIN LI TAN (SI6)", hue="CORPORATION")
+# r.plottable_latest(
+#     index="PRODUCT", unit="Volume (Std Counting Unit)", focus="XIN LI TAN (SI6)", hue="CORPORATION"
+# )
 
 # r.plot_share_trend(
 #     index="PRODUCT",

@@ -44,11 +44,12 @@ df["PRODUCT"] = df["PRODUCT"].apply(lambda x: x[:-3].strip() + " (" + x[-3:] + "
 df["TC III"] = df["TC III"].map(D_RENAME)
 df["STRENGTH"] = df["PACKAGE"].apply(extract_strength)
 
+df.to_excel("test.xlsx")
 
 # 折算标准片数
 mask = df["UNIT"] == "Volume (Counting Unit)"
 df_std_volume = df.loc[mask, :]
-df_std_volume["UNIT"] = "Volume (Std Counting Unit)"
+df_std_volume["UNIT"] = "PTD"
 df = pd.concat([df, df_std_volume])
 
 convert_std_volume(df, "MOLECULE", "阿卡波糖", "50MG", 1 / 6)
@@ -134,31 +135,46 @@ r = CHPA(df, name="NIAD(非胰岛素降糖药)市场", date_column="DATE", perio
 
 # r.plot_overall_performance(index="TC III", unit_change="百万")
 # r.plot_overall_performance(
-#     index="TC III", unit="Volume (Std Counting Unit)", unit_change="百万"
+#     index="TC III", unit="PTD", unit_change="百万"
 # )
 # r.plot_overall_performance(index="TC III", period="QTR", unit_change="百万")
 # r.plot_overall_performance(
-#     index="TC III", period="QTR", unit="Volume (Std Counting Unit)", unit_change="百万"
+#     index="TC III", period="QTR", unit="PTD", unit_change="百万"
 # )
-
-# r.plottable_latest(index="TC III", unit="Value")
-# r.plottable_latest(index="TC III", unit="Volume (Std Counting Unit)")
 
 # r.plot_size_diff(index="MOLECULE", unit="Value", unit_change="百万")
 # r.plot_size_diff(
-#     index="MOLECULE", unit="Volume (Std Counting Unit)", unit_change="百万", label_topy=5,
+#     index="MOLECULE", unit="PTD", unit_change="百万", label_topy=5,
 # )
+
+r.plot_share_gr(index="MOLECULE")
+r.plot_share_gr(index="MOLECULE", unit="PTD")
 
 r.plottable_latest(index="MOLECULE", unit="Value", hue="TC III")
-r.plottable_latest(index="MOLECULE", unit="Volume (Std Counting Unit)", hue="TC III")
+r.plottable_latest(index="MOLECULE", unit="PTD", hue="TC III")
+
+r.plot_share_trend(index="MOLECULE")
+r.plot_share_trend(index="MOLECULE", unit="PTD")
+
+r.plottable_annual(index="MOLECULE")
+r.plottable_annual(index="MOLECULE", unit="PTD")
 
 
-# r.plot_size_diff(index="PRODUCT", unit="Value", unit_change="百万")
-# r.plot_size_diff(
-#     index="PRODUCT", unit="Volume (Std Counting Unit)", unit_change="百万", label_topy=5,
-# )
+r.plot_size_diff(index="PRODUCT", unit="Value", unit_change="百万")
+r.plot_size_diff(
+    index="PRODUCT", unit="PTD", unit_change="百万", label_topy=5,
+)
 
 r.plottable_latest(index="PRODUCT", unit="Value", hue="CORPORATION")
 r.plottable_latest(
-    index="PRODUCT", unit="Volume (Std Counting Unit)", hue="CORPORATION"
+    index="PRODUCT", unit="PTD", hue="CORPORATION"
 )
+
+r.plot_share_trend(index="PRODUCT")
+r.plot_share_trend(index="PRODUCT", unit="PTD")
+
+r.plottable_annual(index="PRODUCT")
+r.plottable_annual(index="PRODUCT", unit="PTD")
+
+# r.plot_share_gr(index="PRODUCT", ylim=(-0.4, 0.4), label_topy=0)
+# r.plot_share_gr(index="PRODUCT", ylim=(-0.4, 0.6), unit="PTD", label_topy=0)

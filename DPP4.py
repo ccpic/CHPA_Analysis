@@ -38,7 +38,7 @@ df.loc[mask, "VBP"] = "非VBP品种"
 
 mask = df["UNIT"] == "Volume (Counting Unit)"
 df_std_volume = df.loc[mask, :]
-df_std_volume["UNIT"] = "Volume (Std Counting Unit)"
+df_std_volume["UNIT"] = "PTD"
 df = pd.concat([df, df_std_volume])
 
 convert_std_volume(df, "MOLECULE", "沙格列汀", "2.5MG", 1 / 2)
@@ -53,44 +53,60 @@ r = CHPA(df, name="DPP4抑制剂单方市场", date_column="DATE", period_interv
 
 # r.plot_overall_performance(
 #     index="MOLECULE",
-#     unit="Volume (Std Counting Unit)",
+#     unit="PTD",
 #     unit_change="百万",
 #     sorter=["西格列汀", "利格列汀", "沙格列汀", "维格列汀", "阿格列汀"],
 # )
+
+# r.plot_overall_performance(
+#     index="MOLECULE",
+#     sorter=["西格列汀", "利格列汀", "沙格列汀", "维格列汀", "阿格列汀"],
+#     unit_change="百万",
+#     period="QTR",
+# )
+
+# r.plot_overall_performance(
+#     index="MOLECULE",
+#     unit="PTD",
+#     unit_change="百万",
+#     sorter=["西格列汀", "利格列汀", "沙格列汀", "维格列汀", "阿格列汀"],
+#     period="QTR",
+# )
+
 
 # r.plot_overall_performance(index="VBP", unit_change="百万")
 
 # r.plot_overall_performance(
 #     index="VBP",
 #     unit_change="百万",
-#     unit="Volume (Std Counting Unit)",
+#     unit="PTD",
 # )
 
 # r.plottable_latest(index="MOLECULE", unit="Value")
-# r.plottable_latest(index="MOLECULE", unit="Volume (Std Counting Unit)")
+# r.plottable_latest(index="MOLECULE", unit="PTD")
 
 
 # r.plot_size_diff(index="PRODUCT", unit="Value", unit_change="百万", label_limit=5)
 
 # r.plot_size_diff(
-#     index="PRODUCT", unit="Volume (Std Counting Unit)", unit_change="百万", label_limit=5
+#     index="PRODUCT", unit="PTD", unit_change="百万", label_limit=5
 # )
 # r.plot_share_gr(index="PRODUCT", unit="Value", label_limit=5)
 
 # r.plot_share_gr(
-#     index="PRODUCT", unit="Volume (Std Counting Unit)",  label_limit=5
+#     index="PRODUCT", unit="PTD",  label_limit=5
 # )
 
 # r.plottable_latest(index="PRODUCT", unit="Value", hue="CORPORATION")
-# r.plottable_latest(index="PRODUCT", unit="Volume (Std Counting Unit)", hue="CORPORATION")
+# r.plottable_latest(index="PRODUCT", unit="PTD", hue="CORPORATION")
 
 # r.plot_share_trend(
 #     index="PRODUCT",
 # )
 # r.plot_share_trend(
 #     index="PRODUCT",
-#     unit="Volume (Std Counting Unit)",
+#     unit="PTD",
 # )
 
 # r.plottable_annual(index="PRODUCT")
-# r.plottable_annual(index="PRODUCT", unit="Volume (Std Counting Unit)")
+# r.plottable_annual(index="PRODUCT", unit="PTD")

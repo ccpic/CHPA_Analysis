@@ -1,6 +1,10 @@
 from CHPA2 import CHPA, convert_std_volume
 from sqlalchemy import create_engine
 import pandas as pd
+from plottable import ColumnDefinition, Table
+from plottable.cmap import normed_cmap, centered_cmap
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 
 engine = create_engine("mssql+pymssql://(local)/CHPA_1806")
 table_name = "data"
@@ -101,15 +105,15 @@ r = CHPA(df, name="抗血小板市场", date_column="DATE", period_interval=3)
 # )
 
 
-r.plottable_latest(
-    index="PRODUCT", unit="Value", focus="TALCOM (SI6)", hue="CORPORATION"
-)
-r.plottable_latest(
-    index="PRODUCT",
-    unit="Volume (Std Counting Unit)",
-    focus="TALCOM (SI6)",
-    hue="CORPORATION",
-)
+# r.plottable_latest(
+#     index="PRODUCT", unit="Value", focus="TALCOM (SI6)", hue="CORPORATION"
+# )
+# r.plottable_latest(
+#     index="PRODUCT",
+#     unit="Volume (Std Counting Unit)",
+#     focus="TALCOM (SI6)",
+#     hue="CORPORATION",
+# )
 
 # r.plot_share_trend(
 #     index="PRODUCT",
@@ -149,18 +153,136 @@ r = CHPA(df2, name="氯吡格雷市场", date_column="DATE", period_interval=3)
 #     label_threshold=0.01,
 # )
 
-# df3 = df[df["MOLECULE"]=="氯吡格雷"]
-# r = CHPA(df3, name="氯吡格雷市场", date_column="DATE", period_interval=3)
+df3 = df[df["MOLECULE"]=="氯吡格雷"]
+r = CHPA(df3, name="氯吡格雷市场", date_column="DATE", period_interval=3)
 
-r.plottable_latest(
-    index="PRODUCT", unit="Value", focus="TALCOM (SI6)", hue="CORPORATION"
-)
-r.plottable_latest(
-    index="PRODUCT",
-    unit="Volume (Std Counting Unit)",
-    focus="TALCOM (SI6)",
-    hue="CORPORATION",
-)
+# r.plottable_latest(
+#     index="PRODUCT", unit="Value", focus="TALCOM (SI6)", hue="CORPORATION"
+# )
+# r.plottable_latest(
+#     index="PRODUCT",
+#     unit="Volume (Std Counting Unit)",
+#     focus="TALCOM (SI6)",
+#     hue="CORPORATION",
+# )
 
 # r.plottable_annual(index="PRODUCT", unit="Value")
 # r.plottable_annual(index="PRODUCT", unit="Volume (Std Counting Unit)")
+
+df_combined = pd.DataFrame()
+l_date = []
+cmap = {}
+
+pivoted = r.get_pivot(index="PRODUCT", columns=r.date_column,values="AMOUNT", query_str=f"UNIT=='Value' and PERIOD=='QTR'" )
+result_2021 =  pivoted[['2021-03', '2021-06', '2021-09', "2021-12"]].sum(axis=1)
+result_2022 =  pivoted[['2022-03', '2022-06', '2022-09', "2022-12"]].sum(axis=1)
+result_2023 =  pivoted[['2023-03', '2023-06']].sum(axis=1)
+
+
+# for i in range(4):
+#     result = self.get_pivot(
+#         index=index,
+#         columns=self.date_column,
+#         values="AMOUNT",
+#         query_str=f"UNIT=='{unit}' and PERIOD=='{period}'",
+#     ).iloc[:, i * 4 - 13]
+#     result.index.name = D_TEXT.get(index, index)
+
+#     text_index = D_TEXT.get(index, index)
+#     text_date = result.name
+#     text_unit = D_TEXT.get(unit, unit)
+#     text_period = D_TEXT.get(period)
+
+#     rank = result.rank(ascending=False, method="first")
+#     share = result.div(result.sum())
+#     df = pd.concat([rank, result, share], axis=1)
+#     df.reset_index(inplace=True)
+#     df.columns = [
+#         f"{text_index}_{text_date}",
+#         "排名",
+#         f"{text_unit}_{text_date}",
+#         f"份额_{text_date}",
+#     ]
+#     df.set_index("排名", inplace=True)
+#     df.sort_index(inplace=True)
+#     df.index = df.index.map("{:.0f}".format)
+#     df_combined = pd.concat([df_combined, df], axis=1)
+#     cmap[text_date] = normed_cmap(
+#         df[f"份额_{text_date}"], cmap=mpl.cm.PiYG, num_stds=2.5
+#     )
+
+#     l_date.append(text_date)
+
+# col_defs = (
+#     [
+#         ColumnDefinition(
+#             name=f"{text_index}_{date}",
+#             title=text_index,
+#             textprops={"ha": "center"},
+#             group=f"{text_period}{date}{text_unit}",
+#             width=1.5,
+#             border="left",
+#         )
+#         for date in l_date
+#     ]
+#     + [
+#         ColumnDefinition(
+#             name=f"{text_unit}_{date}",
+#             title=text_unit,
+#             textprops={"ha": "right"},
+#             formatter="{:,.0f}",
+#             group=f"{text_period}{date}{text_unit}",
+#         )
+#         for date in l_date
+#     ]
+#     + [
+#         ColumnDefinition(
+#             name=f"份额_{date}",
+#             title="份额",
+#             textprops={
+#                 "ha": "right",
+#                 "bbox": {"boxstyle": "round", "pad": 0.3},
+#             },
+#             formatter="{:.1%}",
+#             width=0.5,
+#             group=f"{text_period}{date}{text_unit}",
+#             cmap=cmap[date],
+#         )
+#         for date in l_date
+#     ]
+# )
+
+# plt.rcParams["font.family"] = ["Microsoft YaHei"]
+# plt.rcParams["savefig.bbox"] = "tight"
+
+# fig, ax = plt.subplots(figsize=(width, height))
+
+# title = f"{self.name}历年{text_index}{text_unit}排名"
+# fig.suptitle(title, fontsize=22)
+
+# table = Table(
+#     df_combined.head(topn),
+#     column_definitions=col_defs,
+#     row_dividers=True,
+#     footer_divider=True,
+#     ax=ax,
+#     textprops={
+#         "fontsize": 42 / np.log(df.head(topn).shape[0]),
+#     },
+#     even_row_color="#eeeeee",
+#     row_divider_kw={"linewidth": 1, "linestyle": (0, (1, 5))},
+#     col_label_divider_kw={"linewidth": 1, "linestyle": "-"},
+#     col_label_cell_kw={"height": 2},
+#     column_border_kw={"linewidth": 1, "linestyle": "-"},
+# ).autoset_fontcolors(colnames=None)
+
+# # if focus is not None:
+# #     focus_rindex = df.index.get_loc(focus)
+# #     if focus_rindex <= 20:
+# #         table.rows[focus_rindex].set_facecolor("lightcyan")
+
+# fig.savefig(
+#     f"plots/{title}.png",
+#     facecolor=ax.get_facecolor(),
+#     dpi=400,
+# )
