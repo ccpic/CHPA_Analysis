@@ -1,8 +1,10 @@
-from CHPA2 import CHPA, convert_std_volume, extract_strength
+from CHPA2 import CHPA, extract_strength
 from sqlalchemy import create_engine
 import pandas as pd
 
-df_index = pd.read_excel("肾性贫血定义市场分子PTD系数.xlsx", engine="openpyxl")
+df_index = pd.read_excel(
+    "肾性贫血定义市场分子PTD系数.xlsx", engine="openpyxl", sheet_name="匹配表"
+)
 df_index["PACKAGE_STR"] = df_index["PACKAGE"].apply(lambda x: f"'{x}'")
 str = ", ".join(df_index["PACKAGE_STR"])
 print(df_index)
@@ -152,6 +154,9 @@ for index, value in df_index.iterrows():
 # convert_std_volume(df, "MOLECULE", "硫酸亚铁", "300MG", 1 / 3)
 # convert_std_volume(df, "MOLECULE", "硫酸亚铁", "0.3G", 1 / 3)
 
+d_TC3 = {"B03C 红细胞生成素": "ESA", "B03D HIF-PH抑制剂": "HIF-PHI"}
+df["TC III"] = df["TC III"].map(d_TC3).fillna(df["TC III"])
+
 r = CHPA(df, name="肾性贫血市场", date_column="DATE", period_interval=3)
 
 # r.plot_overall_performance(index="TC III", unit_change="百万")
@@ -159,52 +164,165 @@ r = CHPA(df, name="肾性贫血市场", date_column="DATE", period_interval=3)
 # r.plot_overall_performance(index="TC III", period="QTR", unit_change="百万")
 # r.plot_overall_performance(index="TC III", period="QTR", unit="PTD", unit_change="百万")
 
+
+# r.plot_size_diff(index="MOLECULE", unit_change="百万", hue="TC III", focus="恩那度司他")
 # r.plot_size_diff(
-#     index="PRODUCT",
-#     unit_change="百万",
+#     index="MOLECULE", unit="PTD", unit_change="百万", hue="TC III", focus="恩那度司他"
+# )
+# r.plot_share_gr(
+#     index="MOLECULE", ylim=(-0.2, 0.4), label_topy=0, hue="TC III", focus="恩那度司他",
+# )
+# r.plot_share_gr(
+#     index="MOLECULE",
+#     ylim=(-0.2, 0.4),
+#     unit="PTD",
+#     label_topy=0,
+#     hue="TC III",
+#     focus="恩那度司他",
+# )
+
+# r.plottable_latest(index="MOLECULE", hue="TC III", focus="恩那度司他")
+# r.plottable_latest(index="MOLECULE", unit="PTD", hue="TC III", focus="恩那度司他")
+# r.plot_share_trend(index="MOLECULE", focus="恩那度司他")
+# r.plot_share_trend(index="MOLECULE", unit="PTD", focus="恩那度司他")
+# r.plottable_annual(index="MOLECULE")
+# r.plottable_annual(index="MOLECULE", unit="PTD")
+
+# r.plot_size_diff(
+#     index="PRODUCT", unit_change="百万", hue="TC III", focus="EN NA LUO (SI6)"
 # )
 # r.plot_size_diff(
 #     index="PRODUCT",
 #     unit="PTD",
 #     unit_change="百万",
+#     hue="TC III",
+#     focus="EN NA LUO (SI6)",
 # )
-# r.plot_share_gr(index="PRODUCT", ylim=(-0.4, 0.4), label_topy=0)
-# r.plot_share_gr(index="PRODUCT", ylim=(-0.4, 0.6), unit="PTD", label_topy=0)
+# r.plot_share_gr(
+#     index="PRODUCT",
+#     ylim=(-0.2, 0.4),
+#     label_topy=0,
+#     hue="TC III",
+#     focus="EN NA LUO (SI6)",
+# )
+# r.plot_share_gr(
+#     index="PRODUCT",
+#     ylim=(-0.2, 0.4),
+#     unit="PTD",
+#     label_topy=0,
+#     hue="TC III",
+#     focus="EN NA LUO (SI6)",
+# )
 
-# r.plottable_latest(index="PRODUCT", hue="CORPORATION")
-# r.plottable_latest(index="PRODUCT", unit="PTD", hue="CORPORATION")
+# r.plottable_latest(
+#     index="PRODUCT",
+#     hue=("MOLECULE", "CORPORATION"),
+#     focus="EN NA LUO (SI6)",
+# )
+# r.plottable_latest(
+#     index="PRODUCT",
+#     unit="PTD",
+#     hue=("MOLECULE", "CORPORATION"),
+#     focus="EN NA LUO (SI6)",
+# )
 
-# r.plot_share_trend(index="PRODUCT")
-# r.plot_share_trend(index="PRODUCT", unit="PTD")
+# r.plot_share_trend(
+#     index="PRODUCT",
+#     focus="EN NA LUO (SI6)",
+# )
+# r.plot_share_trend(
+#     index="PRODUCT",
+#     unit="PTD",
+#     focus="EN NA LUO (SI6)",
+# )
 
 # r.plottable_annual(index="PRODUCT")
 # r.plottable_annual(index="PRODUCT", unit="PTD")
 
-df2 = df[df["TC III"].isin(["B03C 红细胞生成素", "B03D HIF-PH抑制剂"])]
-r = CHPA(df2, name="EPO+HIF市场", date_column="DATE", period_interval=3)
+df2 = df[df["TC III"].isin(["ESA", "HIF-PHI"])]
+r = CHPA(df2, name="ESA+HIF市场", date_column="DATE", period_interval=3)
+
+r.plot_overall_performance_dual(index="TC III", unit_change="百万", sorter=["HIF-PHI", "ESA"])
+# r.plot_overall_performance_dual(index="TC III", unit_change="百万", period="QTR")
 
 # r.plot_overall_performance(index="TC III", unit_change="百万")
 # r.plot_overall_performance(index="TC III", unit="PTD", unit_change="百万")
 # r.plot_overall_performance(index="TC III", period="QTR", unit_change="百万")
 # r.plot_overall_performance(index="TC III", period="QTR", unit="PTD", unit_change="百万")
 
-r.plot_size_diff(
-    index="PRODUCT",
-    unit_change="百万",
-)
-r.plot_size_diff(
-    index="PRODUCT",
-    unit="PTD",
-    unit_change="百万",
-)
-r.plot_share_gr(index="PRODUCT", ylim=(-0.4, 0.4), label_topy=0)
-r.plot_share_gr(index="PRODUCT", ylim=(-0.4, 0.6), unit="PTD", label_topy=0)
 
-r.plottable_latest(index="PRODUCT", hue="CORPORATION")
-r.plottable_latest(index="PRODUCT", unit="PTD", hue="CORPORATION")
+# r.plot_size_diff(index="MOLECULE", unit_change="百万", hue="TC III", focus="恩那度司他")
+# r.plot_size_diff(
+#     index="MOLECULE", unit="PTD", unit_change="百万", hue="TC III", focus="恩那度司他"
+# )
+# r.plot_share_gr(
+#     index="MOLECULE", ylim=(-0.2, 0.4), label_topy=0, hue="TC III", focus="恩那度司他",
+# )
+# r.plot_share_gr(
+#     index="MOLECULE",
+#     ylim=(-0.2, 0.4),
+#     unit="PTD",
+#     label_topy=0,
+#     hue="TC III",
+#     focus="恩那度司他",
+# )
 
-r.plot_share_trend(index="PRODUCT")
-r.plot_share_trend(index="PRODUCT", unit="PTD")
+# r.plottable_latest(index="MOLECULE", hue="TC III", focus="恩那度司他", fontsize=18)
+# r.plottable_latest(
+#     index="MOLECULE", unit="PTD", hue="TC III", focus="恩那度司他", fontsize=18
+# )
+# r.plot_share_trend(index="MOLECULE", focus="恩那度司他")
+# r.plot_share_trend(index="MOLECULE", unit="PTD", focus="恩那度司他")
+# r.plottable_annual(index="MOLECULE", fontsize=18)
+# r.plottable_annual(index="MOLECULE", unit="PTD", fontsize=18)
 
-r.plottable_annual(index="PRODUCT")
-r.plottable_annual(index="PRODUCT", unit="PTD")
+# r.plot_size_diff(
+#     index="PRODUCT", unit_change="百万", hue="TC III", focus="EN NA LUO (SI6)"
+# )
+# r.plot_size_diff(
+#     index="PRODUCT",
+#     unit="PTD",
+#     unit_change="百万",
+#     hue="TC III",
+#     focus="EN NA LUO (SI6)",
+# )
+# r.plot_share_gr(
+#     index="PRODUCT",
+#     ylim=(-0.2, 0.4),
+#     label_topy=0,
+#     hue="TC III",
+#     focus="EN NA LUO (SI6)",
+# )
+# r.plot_share_gr(
+#     index="PRODUCT",
+#     ylim=(-0.2, 0.4),
+#     unit="PTD",
+#     label_topy=0,
+#     hue="TC III",
+#     focus="EN NA LUO (SI6)",
+# )
+
+# r.plottable_latest(
+#     index="PRODUCT",
+#     hue=("MOLECULE", "CORPORATION"),
+#     focus="EN NA LUO (SI6)",
+# )
+# r.plottable_latest(
+#     index="PRODUCT",
+#     unit="PTD",
+#     hue=("MOLECULE", "CORPORATION"),
+#     focus="EN NA LUO (SI6)",
+# )
+
+# r.plot_share_trend(
+#     index="PRODUCT",
+#     focus="EN NA LUO (SI6)",
+# )
+# r.plot_share_trend(
+#     index="PRODUCT",
+#     unit="PTD",
+#     focus="EN NA LUO (SI6)",
+# )
+
+# r.plottable_annual(index="PRODUCT")
+# r.plottable_annual(index="PRODUCT", unit="PTD")

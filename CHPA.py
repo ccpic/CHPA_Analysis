@@ -359,7 +359,7 @@ color_dict = {
     "雅施达": "saddlebrown",
     "雅施达（TSV）": "saddlebrown",
     "雅施达（SVU）": "saddlebrown",
-    "百安新": "darkgreen",
+    # "百安新": "darkgreen",
     "百安新（YAZ）": "darkgreen",
     "BAI AN XIN (GRU)": "darkgreen",
     "倍博特（NVU）": "maroon",

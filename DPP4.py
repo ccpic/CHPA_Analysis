@@ -82,19 +82,35 @@ r = CHPA(df, name="DPP4抑制剂单方市场", date_column="DATE", period_interv
 #     unit="PTD",
 # )
 
-# r.plottable_latest(index="MOLECULE", unit="Value")
-# r.plottable_latest(index="MOLECULE", unit="PTD")
+# r.plottable_latest(index="MOLECULE", unit="Value", fontsize=18)
+# r.plottable_latest(index="MOLECULE", unit="PTD", fontsize=18)
 
-
-# r.plot_size_diff(index="PRODUCT", unit="Value", unit_change="百万", label_limit=5)
+# r.plottable_annual(index="MOLECULE", unit="Value", fontsize=18)
+# r.plottable_annual(index="MOLECULE", unit="PTD", fontsize=18)
 
 # r.plot_size_diff(
-#     index="PRODUCT", unit="PTD", unit_change="百万", label_limit=5
+#     index="PRODUCT", unit="Value", unit_change="百万", label_limit=5, hue="MOLECULE"
 # )
-# r.plot_share_gr(index="PRODUCT", unit="Value", label_limit=5)
+
+# r.plot_size_diff(
+#     index="PRODUCT", unit="PTD", unit_change="百万", label_limit=5, hue="MOLECULE"
+# )
+# r.plot_share_gr(
+#     index="PRODUCT",
+#     unit="Value",
+#     label_limit=7,
+#     hue="MOLECULE",
+#     ylim=(-0.2, 0.4),
+#     label_topy=0,
+# )
 
 # r.plot_share_gr(
-#     index="PRODUCT", unit="PTD",  label_limit=5
+#     index="PRODUCT",
+#     unit="PTD",
+#     label_limit=7,
+#     hue="MOLECULE",
+#     ylim=(-0.2, 0.4),
+#     label_topy=0,
 # )
 
 # r.plottable_latest(index="PRODUCT", unit="Value", hue="CORPORATION")

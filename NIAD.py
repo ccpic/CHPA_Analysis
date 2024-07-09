@@ -62,6 +62,8 @@ convert_std_volume(df, "MOLECULE", "吡格列酮", "15MG", 1 / 2)
 convert_std_volume(df, "MOLECULE", "吡格列酮二甲双胍", "515MG", 1 / 2)
 convert_std_volume(df, "MOLECULE", "杜拉鲁肽", "0.75MG", 7)
 convert_std_volume(df, "MOLECULE", "杜拉鲁肽", "1.5MG", 7)
+convert_std_volume(df, "MOLECULE", "度拉糖肽", "0.75MG", 7)
+convert_std_volume(df, "MOLECULE", "度拉糖肽", "1.5MG", 7)
 convert_std_volume(df, "MOLECULE", "二甲双胍", "0.25G", 1 / 4)
 convert_std_volume(df, "MOLECULE", "二甲双胍", "0.5G", 1 / 2)
 convert_std_volume(df, "MOLECULE", "二甲双胍", "250MG", 1 / 4)
@@ -109,6 +111,8 @@ convert_std_volume(df, "MOLECULE", "沙格列汀二甲双胍", "1002MG", 1 / 2)
 convert_std_volume(df, "MOLECULE", "沙格列汀二甲双胍", "1005MG", 1 / 2)
 convert_std_volume(df, "MOLECULE", "索马鲁肽", "2.01MG", 28)
 convert_std_volume(df, "MOLECULE", "索马鲁肽", "4.02MG", 56)
+convert_std_volume(df, "MOLECULE", "司美格鲁肽", "2.01MG", 28)
+convert_std_volume(df, "MOLECULE", "司美格鲁肽", "4.02MG", 56)
 convert_std_volume(df, "MOLECULE", "维格列汀", "50MG", 1 / 2)
 convert_std_volume(df, "MOLECULE", "西格列他钠", "16MG", 1 / 2)
 convert_std_volume(df, "MOLECULE", "西格列汀二甲双胍", "500MG", 1 / 2)
@@ -132,49 +136,63 @@ convert_std_volume(df, "PACKAGE", "QI ZHI PING TAB 36", np.nan, 1 / 4)
 
 
 r = CHPA(df, name="NIAD(非胰岛素降糖药)市场", date_column="DATE", period_interval=3)
+dpp4_molecules = r.data.query("`TC III` == 'DPP4'")["MOLECULE"].unique()
+dpp4_products = r.data.query("`TC III` == 'DPP4'")["PRODUCT"].unique()
 
 # r.plot_overall_performance(index="TC III", unit_change="百万")
-# r.plot_overall_performance(
-#     index="TC III", unit="PTD", unit_change="百万"
-# )
+# r.plot_overall_performance(index="TC III", unit="PTD", unit_change="百万")
 # r.plot_overall_performance(index="TC III", period="QTR", unit_change="百万")
-# r.plot_overall_performance(
-#     index="TC III", period="QTR", unit="PTD", unit_change="百万"
-# )
+# r.plot_overall_performance(index="TC III", period="QTR", unit="PTD", unit_change="百万")
 
-# r.plot_size_diff(index="MOLECULE", unit="Value", unit_change="百万")
+# r.plot_size_diff(index="MOLECULE", unit="Value", unit_change="百万", hue="TC III")
 # r.plot_size_diff(
-#     index="MOLECULE", unit="PTD", unit_change="百万", label_topy=5,
+#     index="MOLECULE", unit="PTD", unit_change="百万", label_topy=5, hue="TC III"
 # )
 
-r.plot_share_gr(index="MOLECULE")
-r.plot_share_gr(index="MOLECULE", unit="PTD")
+# r.plot_share_gr(index="MOLECULE", hue="TC III", ylim=(-0.4, 1), label_topy=0)
+# r.plot_share_gr(
+#     index="MOLECULE", unit="PTD", hue="TC III", ylim=(-0.4, 1), label_topy=0
+# )
 
-r.plottable_latest(index="MOLECULE", unit="Value", hue="TC III")
-r.plottable_latest(index="MOLECULE", unit="PTD", hue="TC III")
-
-r.plot_share_trend(index="MOLECULE")
-r.plot_share_trend(index="MOLECULE", unit="PTD")
-
-r.plottable_annual(index="MOLECULE")
-r.plottable_annual(index="MOLECULE", unit="PTD")
-
-
-r.plot_size_diff(index="PRODUCT", unit="Value", unit_change="百万")
-r.plot_size_diff(
-    index="PRODUCT", unit="PTD", unit_change="百万", label_topy=5,
-)
-
-r.plottable_latest(index="PRODUCT", unit="Value", hue="CORPORATION")
 r.plottable_latest(
-    index="PRODUCT", unit="PTD", hue="CORPORATION"
+    index="MOLECULE",
+    unit="Value",
+    hue="TC III",
+    focus=dpp4_molecules,
+)
+r.plottable_latest(
+    index="MOLECULE",
+    unit="PTD",
+    hue="TC III",
+    focus=dpp4_molecules,
 )
 
-r.plot_share_trend(index="PRODUCT")
-r.plot_share_trend(index="PRODUCT", unit="PTD")
+# r.plot_share_trend(index="MOLECULE")
+# r.plot_share_trend(index="MOLECULE", unit="PTD")
 
-r.plottable_annual(index="PRODUCT")
-r.plottable_annual(index="PRODUCT", unit="PTD")
+# r.plottable_annual(index="MOLECULE")
+# r.plottable_annual(index="MOLECULE", unit="PTD")
 
-# r.plot_share_gr(index="PRODUCT", ylim=(-0.4, 0.4), label_topy=0)
-# r.plot_share_gr(index="PRODUCT", ylim=(-0.4, 0.6), unit="PTD", label_topy=0)
+
+# r.plot_size_diff(index="PRODUCT", unit="Value", unit_change="百万", hue="TC III")
+# r.plot_size_diff(
+#     index="PRODUCT",
+#     unit="PTD",
+#     unit_change="百万",
+#     label_topy=5,
+#     hue="TC III",
+# )
+# r.plot_share_gr(index="PRODUCT", hue="TC III", ylim=(-0.4, 1), label_topy=4)
+# r.plot_share_gr(
+#     index="PRODUCT", unit="PTD", hue="TC III", ylim=(-0.4, 1), label_topy=4
+# )
+
+
+# r.plottable_latest(index="PRODUCT", unit="Value", hue=("MOLECULE", "CORPORATION"), focus=dpp4_products)
+# r.plottable_latest(index="PRODUCT", unit="PTD", hue=("MOLECULE", "CORPORATION"),focus=dpp4_products)
+
+# r.plot_share_trend(index="PRODUCT")
+# r.plot_share_trend(index="PRODUCT", unit="PTD")
+
+# r.plottable_annual(index="PRODUCT")
+# r.plottable_annual(index="PRODUCT", unit="PTD")

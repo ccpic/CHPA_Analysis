@@ -77,10 +77,7 @@ r = CHPA(df, name="抗血小板市场", date_column="DATE", period_interval=3)
 
 
 # r.plot_size_diff(
-#     index="PRODUCT",
-#     unit="Value",
-#     unit_change="百万",
-#     label_limit=10,
+#     index="PRODUCT", unit="Value", unit_change="百万", label_limit=10, hue="MOLECULE"
 # )
 
 # r.plot_size_diff(
@@ -88,13 +85,11 @@ r = CHPA(df, name="抗血小板市场", date_column="DATE", period_interval=3)
 #     unit="Volume (Std Counting Unit)",
 #     unit_change="百万",
 #     label_limit=10,
+#     hue="MOLECULE",
 # )
 
 # r.plot_share_gr(
-#     index="PRODUCT",
-#     unit="Value",
-#     ylim=(-0.5, 1),
-#     label_limit=10,
+#     index="PRODUCT", unit="Value", ylim=(-0.5, 1), label_limit=10, hue="MOLECULE"
 # )
 # r.plot_share_gr(
 #     index="PRODUCT",
@@ -102,6 +97,7 @@ r = CHPA(df, name="抗血小板市场", date_column="DATE", period_interval=3)
 #     ylim=(-0.5, 1),
 #     label_limit=10,
 #     label_topy=4,
+#     hue="MOLECULE",
 # )
 
 
@@ -137,9 +133,28 @@ D_MAP = {
     "SHUAI TAI (LUU)": "SHUAI XIN/SHUAI TAI (LUU)",
 }
 df2 = df[df["MOLECULE"] == "氯吡格雷"]
-df2["PRODUCT"] = df2["PRODUCT"].map(D_MAP).fillna("Others") # 注意，这里会影响后续出销售明细
+df2["PRODUCT"] = (
+    df2["PRODUCT"].map(D_MAP).fillna("Others")
+)  # 注意，这里会影响后续出销售明细
+
+df_from_file = pd.read_excel("氯吡格雷市场.xlsx")
+df_from_file = df_from_file[df_from_file["DATE"] <= "2019-12-01"]
+
+r= CHPA(df_from_file, name="氯吡格雷市场(2015-2019)", date_column="DATE", period_interval=3)
+r.plot_overall_performance(
+    index="PRODUCT",
+    unit="PTD",
+    unit_change="百万",
+    label_threshold=0.01,
+)
+
+r.plot_share_trend(
+    index="PRODUCT",
+    unit="PTD",
+)
 
 r = CHPA(df2, name="氯吡格雷市场", date_column="DATE", period_interval=3)
+# r.data.to_excel("氯吡格雷市场.xlsx")
 
 # r.plot_overall_performance(
 #     index="PRODUCT",
@@ -153,7 +168,23 @@ r = CHPA(df2, name="氯吡格雷市场", date_column="DATE", period_interval=3)
 #     label_threshold=0.01,
 # )
 
-df3 = df[df["MOLECULE"]=="氯吡格雷"]
+
+# r.plot_overall_performance(
+#     index="PRODUCT",
+#     unit_change="百万",
+#     label_threshold=0.01,
+#     period="QTR",
+# )
+# r.plot_overall_performance(
+#     index="PRODUCT",
+#     unit="Volume (Std Counting Unit)",
+#     unit_change="百万",
+#     label_threshold=0.01,
+#     period="QTR",
+# )
+
+
+df3 = df[df["MOLECULE"] == "氯吡格雷"]
 r = CHPA(df3, name="氯吡格雷市场", date_column="DATE", period_interval=3)
 
 # r.plottable_latest(
@@ -166,17 +197,30 @@ r = CHPA(df3, name="氯吡格雷市场", date_column="DATE", period_interval=3)
 #     hue="CORPORATION",
 # )
 
+# r.plot_share_trend(index="PRODUCT", focus="TALCOM (SI6)")
+# r.plot_share_trend(
+#     index="PRODUCT",
+#     focus="TALCOM (SI6)",
+#     unit="Volume (Std Counting Unit)",
+# )
+
+
 # r.plottable_annual(index="PRODUCT", unit="Value")
 # r.plottable_annual(index="PRODUCT", unit="Volume (Std Counting Unit)")
 
-df_combined = pd.DataFrame()
-l_date = []
-cmap = {}
+# df_combined = pd.DataFrame()
+# l_date = []
+# cmap = {}
 
-pivoted = r.get_pivot(index="PRODUCT", columns=r.date_column,values="AMOUNT", query_str=f"UNIT=='Value' and PERIOD=='QTR'" )
-result_2021 =  pivoted[['2021-03', '2021-06', '2021-09', "2021-12"]].sum(axis=1)
-result_2022 =  pivoted[['2022-03', '2022-06', '2022-09', "2022-12"]].sum(axis=1)
-result_2023 =  pivoted[['2023-03', '2023-06']].sum(axis=1)
+# pivoted = r.get_pivot(
+#     index="PRODUCT",
+#     columns=r.date_column,
+#     values="AMOUNT",
+#     query_str=f"UNIT=='Value' and PERIOD=='QTR'",
+# )
+# result_2021 = pivoted[["2021-03", "2021-06", "2021-09", "2021-12"]].sum(axis=1)
+# result_2022 = pivoted[["2022-03", "2022-06", "2022-09", "2022-12"]].sum(axis=1)
+# result_2023 = pivoted[["2023-03", "2023-06"]].sum(axis=1)
 
 
 # for i in range(4):

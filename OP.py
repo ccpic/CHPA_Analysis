@@ -83,6 +83,7 @@ convert_std_volume(df, "MOLECULE", "地舒单抗", "60MG", 365 / 2)
 # convert_std_volume(df, "PRODUCT", "珍固", "200IU", 365 / 36)
 convert_std_volume(df, "PRODUCT", "FORSTEO (LLY)", "600Y", 28)
 convert_std_volume(df, "PRODUCT", "XIN FU TAI (XIL)", "600Y", 30)
+# convert_std_volume(df, "PRODUCT", "JIN LI SHENG (ST+)", "120MG", 30)
 # convert_std_volume(df, "PRODUCT", "ZHEN GU (S60)", "200IU", 365 / 36)
 
 r = CHPA(df, name="骨松治疗市场", date_column="DATE", period_interval=3)
@@ -96,37 +97,60 @@ r = CHPA(df, name="骨松治疗市场", date_column="DATE", period_interval=3)
 # r.plot_overall_performance(
 #     index="TC IV",
 #     sorter=["SERM", "降钙素", "双膦酸盐类", "PTH", "地舒单抗"],
-#     unit="Volume (Std Counting Unit)",
+#     unit="PTD",
 #     unit_change="百万",
 #     label_threshold=0,
 # )
 
 
+# r.plot_overall_performance(
+#     index="TC IV",
+#     sorter=["SERM", "降钙素", "双膦酸盐类", "PTH", "地舒单抗"],
+#     unit_change="百万",
+#     label_threshold=0,
+#     period="QTR",
+# )
+# r.plot_overall_performance(
+#     index="TC IV",
+#     sorter=["SERM", "降钙素", "双膦酸盐类", "PTH", "地舒单抗"],
+#     unit="PTD",
+#     unit_change="百万",
+#     label_threshold=0,
+#     period="QTR",
+# )
+
+
 # r.plot_size_diff(
 #     index="MOLECULE",
 #     unit="Value",
 #     unit_change="百万",
+#     hue="TC IV",
 # )
 
 # r.plot_size_diff(
 #     index="MOLECULE",
 #     unit="PTD",
 #     unit_change="百万",
+#     hue="TC IV",
 # )
 
 # r.plot_share_gr(
 #     index="MOLECULE",
 #     unit="Value",
+#     hue="TC IV",
+#     ylim=(-0.6, 1),
 # )
 
 # r.plot_share_gr(
 #     index="MOLECULE",
 #     unit="PTD",
+#     hue="TC IV",
+#     ylim=(-0.25, 1.5),
 # )
 
-# r.plottable_latest(index="MOLECULE", unit="Value", hue="TC IV")
-# r.plottable_latest(index="MOLECULE", unit="PTD", hue="TC IV")
 
+# r.plottable_latest(index="MOLECULE", unit="Value", hue="TC IV", focus="特立帕肽")
+# r.plottable_latest(index="MOLECULE", unit="PTD", hue="TC IV", focus="特立帕肽")
 
 # r.plot_share_trend(
 #     index="MOLECULE",
@@ -146,33 +170,46 @@ r = CHPA(df, name="骨松治疗市场", date_column="DATE", period_interval=3)
 #     index="PRODUCT",
 #     unit="Value",
 #     unit_change="百万",
+#     hue="MOLECULE",
+#     focus="XIN FU TAI (XIL)",
 # )
 
 # r.plot_size_diff(
 #     index="PRODUCT",
 #     unit="PTD",
 #     unit_change="百万",
+#     hue="MOLECULE",
+#     focus="XIN FU TAI (XIL)",
 # )
 
-# r.plot_share_gr(index="PRODUCT", unit="Value", ylim=(-0.5, 2), label_topy=3)
+# r.plot_share_gr(
+#     index="PRODUCT",
+#     unit="Value",
+#     ylim=(-0.5, 2),
+#     label_topy=3,
+#     hue="MOLECULE",
+#     focus="XIN FU TAI (XIL)",
+# )
 
-# r.plot_share_gr(index="PRODUCT", unit="PTD", ylim=(-0.5, 2), label_topy=3)
+# r.plot_share_gr(
+#     index="PRODUCT", unit="PTD", ylim=(-0.5, 2), label_topy=3, hue="MOLECULE",focus="XIN FU TAI (XIL)"
+# )
 
 
 # r.plottable_latest(
-#     index="PRODUCT", unit="Value", focus="XIN FU TAI (XIL)", hue="CORPORATION"
+#     index="PRODUCT",
+#     unit="Value",
+#     focus="XIN FU TAI (XIL)",
+#     hue=("MOLECULE", "CORPORATION"),
 # )
 # r.plottable_latest(
 #     index="PRODUCT",
 #     unit="PTD",
 #     focus="XIN FU TAI (XIL)",
-#     hue="CORPORATION",
+#     hue=("MOLECULE", "CORPORATION"),
 # )
 
-# r.plot_share_trend(
-#     index="PRODUCT",
-#     focus="XIN FU TAI (XIL)"
-# )
+# r.plot_share_trend(index="PRODUCT", focus="XIN FU TAI (XIL)")
 # r.plot_share_trend(
 #     index="PRODUCT",
 #     focus="XIN FU TAI (XIL)",
@@ -183,31 +220,37 @@ r = CHPA(df, name="骨松治疗市场", date_column="DATE", period_interval=3)
 # r.plottable_annual(index="PRODUCT", unit="PTD")
 
 df2 = df[df["MOLECULE"] == "特立帕肽"]
+d_package = {
+    "XIN FU TAI PRE-FILLED P 600Y 2.4ML 1": "欣复泰水针",
+    "ZHEN GU VIAL DRY 200IU 1": "珍固",
+    "FORSTEO PRE-FILLED P 600Y 2.4ML 1": "复泰奥",
+    "XIN FU TAI VIAL DRY 200IU 10": "欣复泰粉针",
+}
+df2["PACKAGE"] = df2["PACKAGE"].map(d_package)
 r = CHPA(df2, name="特立帕肽市场", date_column="DATE", period_interval=3)
 
 
-# r.plot_overall_performance(
-#     index="PACKAGE",
-#     unit_change="百万",
-# )
-# r.plot_overall_performance(
-#     index="PACKAGE",
-#     unit="PTD",
-#     unit_change="千",
-# )
+r.plot_overall_performance(
+    index="PACKAGE",
+    unit_change="百万",
+)
+r.plot_overall_performance(
+    index="PACKAGE",
+    unit="PTD",
+    unit_change="千",
+)
 
-
-# r.plot_overall_performance(
-#     index="PACKAGE",
-#     unit_change="百万",
-#     period="QTR",
-# )
-# r.plot_overall_performance(
-#     index="PACKAGE",
-#     unit="PTD",
-#     unit_change="千",
-#     period="QTR",
-# )
+r.plot_overall_performance(
+    index="PACKAGE",
+    unit_change="百万",
+    period="QTR",
+)
+r.plot_overall_performance(
+    index="PACKAGE",
+    unit="PTD",
+    unit_change="千",
+    period="QTR",
+)
 
 r.plottable_latest(
     index="PACKAGE",

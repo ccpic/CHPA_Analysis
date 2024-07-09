@@ -1,7 +1,7 @@
-from CHPA2 import CHPA, convert_std_volume, extract_strength
+from CHPA2 import CHPA, extract_strength
 from sqlalchemy import create_engine
 import pandas as pd
-import numpy as np
+
 
 engine = create_engine("mssql+pymssql://(local)/CHPA_1806")
 table_name = "data"
@@ -30,6 +30,7 @@ D_CLASS = {
     "C09A0": "ACEI",
     "C03A7": "DU",
     "C03A1": "DU",
+    "C03A3": "DU",
     "C09B1": "A+D FDC",
 }
 
@@ -98,6 +99,7 @@ df_std_volume = df.loc[mask, :]
 df_std_volume["UNIT"] = "PTD"
 df = pd.concat([df, df_std_volume])
 
+df.to_excel("test.xlsx")
 df_ptd = pd.read_excel("高血压PTD系数_0712.xlsx")
 for row in df_ptd.iterrows():
     mask = (
@@ -111,7 +113,7 @@ print("Finished converting PTD...")
 
 
 df.loc[df["CLASS"] == "BB", "AMOUNT"] = df.loc[df["CLASS"] == "BB", "AMOUNT"] * 0.55
-df.loc[df["CLASS"] == "ARNI", "AMOUNT"] = df.loc[df["CLASS"] == "ARNI", "AMOUNT"] * 0.55
+df.loc[df["CLASS"] == "ARNI", "AMOUNT"] = df.loc[df["CLASS"] == "ARNI", "AMOUNT"] * 0.7
 df.loc[df["CLASS"] == "DU", "AMOUNT"] = df.loc[df["CLASS"] == "DU", "AMOUNT"] * 0.8
 
 print("Finished adding weights...")
@@ -144,21 +146,50 @@ r = CHPA(df, name="口服降压药市场", date_column="DATE", period_interval=3
 #     period="QTR",
 # )
 
-# r.plottable_latest(index="CLASS", unit="Value", show_total=False)
-# r.plottable_latest(index="CLASS", unit="PTD", show_total=False)
+# r.plottable_latest(index="CLASS", unit="Value", show_total=False, focus="ARNI")
+# r.plottable_latest(index="CLASS", unit="PTD", show_total=False, focus="ARNI")
 
-# r.plot_size_diff(index="MOLECULE", unit="Value", unit_change="百万", label_limit=20)
+# r.plottable_annual(index="CLASS", unit="Value")
+# r.plottable_annual(index="CLASS", unit="PTD")
+
 # r.plot_size_diff(
-#     index="MOLECULE", unit="PTD", unit_change="百万", label_topy=5, label_limit=20,
+#     index="MOLECULE",
+#     unit="Value",
+#     unit_change="百万",
+#     label_limit=20,
+#     hue="CLASS",
+#     focus="阿利沙坦",
+# )
+# r.plot_size_diff(
+#     index="MOLECULE",
+#     unit="PTD",
+#     unit_change="百万",
+#     label_topy=5,
+#     label_limit=20,
+#     hue="CLASS",
+#     focus="阿利沙坦",
 # )
 
-# r.plot_share_gr(index="MOLECULE", unit="Value", ylim=(-0.5, 1), label_limit=20)
 # r.plot_share_gr(
-#     index="MOLECULE", unit="PTD", label_topy=5, label_limit=20, ylim=(-0.5, 1.2)
+#     index="MOLECULE",
+#     unit="Value",
+#     ylim=(-0.4, 0.6),
+#     label_limit=20,
+#     hue="CLASS",
+#     focus="阿利沙坦",
+# )
+# r.plot_share_gr(
+#     index="MOLECULE",
+#     unit="PTD",
+#     label_topy=5,
+#     label_limit=20,
+#     ylim=(-0.4, 0.8),
+#     hue="CLASS",
+#     focus="阿利沙坦",
 # )
 
-# r.plottable_latest(index="MOLECULE", unit="Value", hue="CLASS")
-# r.plottable_latest(index="MOLECULE", unit="PTD", hue="CLASS")
+# r.plottable_latest(index="MOLECULE", unit="Value", hue="CLASS", focus="沙库巴曲缬沙坦")
+# r.plottable_latest(index="MOLECULE", unit="PTD", hue="CLASS", focus="沙库巴曲缬沙坦")
 
 # r.plot_share_trend(index="MOLECULE", unit="Value")
 # r.plot_share_trend(index="MOLECULE", unit="PTD")
@@ -166,30 +197,52 @@ r = CHPA(df, name="口服降压药市场", date_column="DATE", period_interval=3
 # r.plottable_annual(index="MOLECULE", unit="Value")
 # r.plottable_annual(index="MOLECULE", unit="PTD")
 
-# r.plot_size_diff(index="PRODUCT", unit="Value", unit_change="百万", label_limit=20)
+# r.plot_size_diff(
+#     index="PRODUCT",
+#     unit="Value",
+#     unit_change="百万",
+#     label_limit=20,
+#     hue="CLASS",
+#     focus="XIN LI TAN (SI6)",
+# )
 # r.plot_size_diff(
 #     index="PRODUCT",
 #     unit="PTD",
 #     unit_change="百万",
 #     label_topy=7,
 #     label_limit=20,
+#     hue="CLASS",
+#     focus="XIN LI TAN (SI6)",
 # )
 
 # r.plot_share_gr(
-#     index="PRODUCT", unit="Value", label_topy=0, ylim=(-0.5, 1), label_limit=20
+#     index="PRODUCT",
+#     unit="Value",
+#     label_topy=5,
+#     ylim=(-0.5, 1),
+#     label_limit=20,
+#     hue="CLASS",
+#     focus="XIN LI TAN (SI6)",
 # )
 # r.plot_share_gr(
 #     index="PRODUCT",
 #     unit="PTD",
-#     label_topy=0,
+#     label_topy=5,
 #     label_limit=20,
-#     ylim=(-0.5, 1.2),
+#     ylim=(-0.5, 1),
+#     hue="CLASS",
+#     focus="XIN LI TAN (SI6)",
 # )
 
 
-# r.plottable_latest(index="PRODUCT", unit="Value", hue="MOLECULE")
 # r.plottable_latest(
-#     index="PRODUCT", unit="PTD", hue="MOLECULE"
+#     index="PRODUCT",
+#     unit="Value",
+#     hue=("MOLECULE", "CORPORATION"),
+#     focus="ENTRESTO (NVR)",
+# )
+# r.plottable_latest(
+#     index="PRODUCT", unit="PTD", hue=("MOLECULE", "CORPORATION"), focus="ENTRESTO (NVR)"
 # )
 
 # r.plot_share_trend(index="PRODUCT", unit="Value")
@@ -199,36 +252,46 @@ r = CHPA(df, name="口服降压药市场", date_column="DATE", period_interval=3
 # r.plottable_annual(index="PRODUCT", unit="PTD")
 
 
-
 df = df[df["CLASS"] == "ARNI"]
 r = CHPA(df, name="ARNI市场", date_column="DATE", period_interval=3)
 
-r.plot_trend_with_gr(
-    index=None, unit_change="百万", color_dict={"AMOUNT": "Navy"}, width=6, height=5
-)
-r.plot_trend_with_gr(
-    index=None,
-    unit_change="百万",
-    unit="PTD",
-    color_dict={"AMOUNT": "Crimson"},
-    width=6,
-    height=5,
-)
+# r.plot_trend_with_gr(
+#     index=None, unit_change="百万", color_dict={"AMOUNT": "Navy"}, width=6, height=5
+# )
+# r.plot_trend_with_gr(
+#     index=None,
+#     unit_change="百万",
+#     unit="PTD",
+#     color_dict={"AMOUNT": "Crimson"},
+#     width=6,
+#     height=5,
+# )
 
-r.plot_trend_with_gr(
-    index=None,
-    unit_change="百万",
-    color_dict={"AMOUNT": "Navy"},
-    period="QTR",
-    width=15,
-    height=6,
+# r.plot_trend_with_gr(
+#     index=None,
+#     unit_change="百万",
+#     color_dict={"AMOUNT": "Navy"},
+#     period="QTR",
+#     width=15,
+#     height=6,
+# )
+# r.plot_trend_with_gr(
+#     index=None,
+#     unit_change="百万",
+#     unit="PTD",
+#     color_dict={"AMOUNT": "Crimson"},
+#     period="QTR",
+#     width=15,
+#     height=6,
+# )
+
+r.plottable_latest(
+    index="PACKAGE",
+    unit="Value",
+    hue="CORPORATION",
 )
-r.plot_trend_with_gr(
-    index=None,
-    unit_change="百万",
+r.plottable_latest(
+    index="PACKAGE",
     unit="PTD",
-    color_dict={"AMOUNT": "Crimson"},
-    period="QTR",
-    width=15,
-    height=6,
+    hue="CORPORATION",
 )

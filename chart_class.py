@@ -186,7 +186,7 @@ COLOR_DICT = {
     "雅施达": "saddlebrown",
     "雅施达（TSV）": "saddlebrown",
     "雅施达（SVU）": "saddlebrown",
-    "百安新": "darkgreen",
+    # "百安新": "darkgreen",
     "倍博特": "maroon",
     "傲坦": "deepskyblue",
     "美卡素": "purple",
