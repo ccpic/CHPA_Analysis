@@ -1,18 +1,19 @@
 from os import path
 import sys
-from plottable import ColumnDefinition, Table
-from plottable.cmap import normed_cmap, centered_cmap
 import pandas as pd
 import numpy as np
 
-sys.path.append(path.abspath("../chart_class"))
-from dataframe import DfAnalyzer
-from figure import GridFigure
-from color import COLOR_DICT
+sys.path.append(path.abspath("D:\\PyProjects\\chart_class"))
+from utils.dataframe import DfAnalyzer
+from chart.figure import GridFigure
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from typing import Optional, Tuple, List, Dict
+from plottable import ColumnDefinition, Table
+from typing import Optional, Tuple, List, Dict, Callable, Any
+from matplotlib.colors import TwoSlopeNorm
+
 import re
+from chart.color import COLOR_DICT
 
 try:
     from typing import Literal
@@ -34,7 +35,7 @@ D_TEXT = {
     "MQT": "滚动季",
     "QTR": "季度",
     "VBP": "VBP状态",
-    "CLASS": "品类",
+    "CLASS": "治疗大类",
     "FORM": "剂型",
 }
 
@@ -58,6 +59,108 @@ def convert_std_volume(df, dimension, target, strength, ratio):
         & (df[column_unit] == unit_std_volume)
     )
     df.loc[mask, column_value] = (df.loc[mask, column_value]) * ratio
+
+def normed_cmap(
+    s: pd.Series,
+    cmap: mpl.colors.LinearSegmentedColormap,
+    num_stds: float = 2.5,
+    *args,
+    **kwargs,
+) -> Callable[[float], Tuple[float, float, float, float]]:
+    if len(s) == 1:
+        return lambda x: (238 / 255, 238 / 255, 238 / 255, 1)
+
+    _median = s.median()
+    _std = s.std()
+
+    vmin = kwargs.get("vmin", _median - num_stds * _std)
+    vmax = kwargs.get("vmax", _median + num_stds * _std)
+
+    norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
+    m = mpl.cm.ScalarMappable(norm=norm, cmap=cmap)
+    return m.to_rgba
+
+
+def centered_cmap(
+    s: pd.Series,
+    cmap: mpl.colors.LinearSegmentedColormap,
+    num_stds: float = 2.5,
+    center: Optional[float] = 0,
+    vmin: Optional[float] = None,
+    vmax: Optional[float] = None,
+) -> Callable[[float], Tuple[float, float, float, float]]:
+    if center is None:
+        center = s.median()
+    _std = s.std()
+
+    # 优先使用参数，否则自动计算
+    vmin = vmin if vmin is not None else center - num_stds * _std
+    vmax = vmax if vmax is not None else center + num_stds * _std
+
+    norm = TwoSlopeNorm(vcenter=center, vmin=vmin, vmax=vmax)
+    m = mpl.cm.ScalarMappable(norm=norm, cmap=cmap)
+    return m.to_rgba
+
+
+def generate_color_map(
+    df: pd.DataFrame,
+    color_cols: Dict[str, Dict[str, Any]],
+) -> Dict[str, Callable[[float], Tuple[float, float, float, float]]]:
+    """
+    生成颜色映射字典
+    :param df: DataFrame，数据框
+    :param color_cols: 字典，键为列名，值为配置dict, 支持如下key:
+        method: "normed"或"centered"，默认normed
+        cmap: colormap对象或字符串（如"PiYG"）
+        vmin, vmax: 数值
+        center: 居中时的center值
+        num_stds: 标准差倍数
+    :return: 颜色映射字典，键为列名，值为颜色映射函数
+    """
+    cmap_dict = {}
+
+    for key, cfg in color_cols.items():
+        if key not in df.columns:
+            continue
+
+        method = cfg.get("method", "normed")
+        cmap_obj = cfg.get("cmap", mpl.cm.PiYG)
+        if isinstance(cmap_obj, str):
+            cmap_obj = getattr(mpl.cm, cmap_obj)
+
+        num_stds = cfg.get("num_stds", 2.5)
+        vmin = cfg.get("vmin")
+        vmax = cfg.get("vmax")
+        center = cfg.get("center")
+
+        data = df.loc[df.index != "总计", key]
+
+        if method == "centered":
+            cmap_dict[key] = centered_cmap(
+                data,
+                cmap_obj,
+                num_stds=num_stds,
+                center=center,
+                vmin=vmin,
+                vmax=vmax,
+            )
+        else:
+            cmap_dict[key] = normed_cmap(
+                data,
+                cmap_obj,
+                num_stds=num_stds,
+                vmin=vmin,
+                vmax=vmax,
+            )
+
+    # Decile 默认用normed
+    cmap_dict["Decile"] = normed_cmap(
+        pd.Series(range(1, 11)),
+        mpl.cm.viridis,
+        vmin=1,
+        vmax=10,
+    )
+    return cmap_dict
 
 
 class CHPA(DfAnalyzer):
@@ -158,6 +261,7 @@ class CHPA(DfAnalyzer):
         color_dict: Dict[str, str] = COLOR_DICT,
         width: Optional[float] = 12,
         height: Optional[float] = 5.5,
+        fontsize: Optional[float] = 11,
     ):
         unit1 = "Value"
         unit2 = "PTD"
@@ -171,7 +275,9 @@ class CHPA(DfAnalyzer):
             )
             .div(self.unit_change(unit_change))
             .reindex(sorter)
+            .dropna()
         )
+        print(df1)
         df2 = (
             self.get_pivot(
                 index=index,
@@ -181,7 +287,9 @@ class CHPA(DfAnalyzer):
             )
             .div(self.unit_change(unit_change))
             .reindex(sorter)
+            .dropna()
         )
+        print(df2)
         if period == "MAT":
             df1 = df1.iloc[:, [-13, -9, -5, -1]]
             df2 = df2.iloc[:, [-13, -9, -5, -1]]
@@ -198,7 +306,7 @@ class CHPA(DfAnalyzer):
             wspace=0.1,
             width=width,
             height=height,
-            fontsize=11,
+            fontsize=fontsize,
             style={
                 "title": (
                     f"{self.name}分{text_index}{text_period}趋势"
@@ -213,13 +321,12 @@ class CHPA(DfAnalyzer):
 
         if period == "MAT":
             if df1.shape[0] > 1:
-                label_formatter = "{abs}\n({share})"
+                # label_formatter = "{abs}\n({share})"
+                label_formatter = "{share}"
             else:
                 label_formatter = "{abs}"
         else:
-            df1.to_excel("test1.xlsx")
-            df2.to_excel("test2.xlsx")
-            df1 = df1.div(df1.sum()).iloc[:,-9:]
+            df1 = df1.div(df1.sum()).iloc[:, -9:]
             df2 = df2.div(df2.sum()).iloc[:, -9:]
             if df1.shape[0] > 1:
                 label_formatter = "{share}"
@@ -234,7 +341,11 @@ class CHPA(DfAnalyzer):
                 ax_index=i,
                 style={
                     "title": "金额" if i == 0 else "PTD",
-                    "ylabel": f"{text_period}{text_unit_change}" if period == "MAT" else "份额",
+                    "ylabel": (
+                        f"{text_period}{text_unit_change}"
+                        if period == "MAT"
+                        else "份额"
+                    ),
                     "show_legend": True if i != 0 else False,
                     "xticklabel_rotation": 0 if period == "MAT" else 90,
                 },
@@ -243,7 +354,7 @@ class CHPA(DfAnalyzer):
                 show_total_bar=True if (period == "MAT" and df.shape[0] > 1) else False,
                 show_total_label=True if df.shape[0] > 1 else False,
                 bar_width=0.5 if period == "MAT" else 0.8,
-                label_fontsize=10,
+                label_fontsize=fontsize,
                 label_threshold=label_threshold,
                 # show_label=df.index,
             )
@@ -330,6 +441,8 @@ class CHPA(DfAnalyzer):
         ylim: Optional[Tuple[float, float]] = None,
         label_limit: int = 15,
         label_topy: int = 3,
+        width: float = 15,
+        height: float = 6,
     ):
         df = self.ptable(
             index=[index, hue] if hue is not None else index,
@@ -356,8 +469,8 @@ class CHPA(DfAnalyzer):
 
         f = plt.figure(
             FigureClass=GridFigure,
-            width=15,
-            height=6,
+            width=width,
+            height=height,
             fontsize=11,
             style={
                 "title": f"{self.name}{text_index}{text_period}{text_unit}绝对值 vs. 净增长",
@@ -387,6 +500,110 @@ class CHPA(DfAnalyzer):
         )
 
         f.save()
+
+        return df
+
+    def plot_size_diff_dual(
+        self,
+        index: str,
+        hue: Optional[str] = None,
+        focus: Optional[List[str]] = None,
+        date: Optional[str] = None,
+        unit_change: Optional[
+            Tuple[
+                Literal["十亿", "亿", "百万", "万", "千"],
+                Literal["十亿", "亿", "百万", "万", "千"],
+            ]
+        ] = None,
+        period: Literal["MAT", "QTR"] = "MAT",
+        label_limit: int = 15,
+        label_topy: int = 3,
+        color_dict: Dict[str, str] = COLOR_DICT,
+        width: float = 15,
+        height: float = 6,
+        fontsize: Optional[float] = 11,
+    ):
+
+        unit1 = "Value"
+        unit2 = "PTD"
+
+        df1 = self.ptable(
+            index=[index, hue] if hue is not None else index,
+            date=date,
+            values="AMOUNT",
+            query_str=f"UNIT=='{unit1}' and PERIOD=='{period}'",
+        ).div(self.unit_change(unit_change[0]))
+
+        df2 = self.ptable(
+            index=[index, hue] if hue is not None else index,
+            date=date,
+            values="AMOUNT",
+            query_str=f"UNIT=='{unit2}' and PERIOD=='{period}'",
+        ).div(self.unit_change(unit_change[1]))
+
+        if hue is not None:
+            df1 = df1.reset_index().set_index(index)
+            df2 = df2.reset_index().set_index(index)
+
+        df1 = df1.loc[
+            :,
+            [hue, "表现", "同比净增长"] if hue is not None else ["表现", "同比净增长"],
+        ]
+        df2 = df2.loc[
+            :,
+            [hue, "表现", "同比净增长"] if hue is not None else ["表现", "同比净增长"],
+        ]
+
+        print(df1, df2)
+
+        text_index = D_TEXT.get(index, index)
+        text_date = self.date.strftime(self._strftime) if date is None else date
+        text_period = D_TEXT.get(period)
+
+        f = plt.figure(
+            FigureClass=GridFigure,
+            nrows=1,
+            ncols=2,
+            wspace=0.1,
+            width=width,
+            height=height,
+            fontsize=fontsize,
+            style={
+                "title": (
+                    f"{self.name}分{text_index}{text_period}趋势"
+                    if df1.shape[0] > 1
+                    else f"{self.name}{text_period}趋势"
+                ),
+                "label_outer": False,
+                # "show_legend": True,
+            },
+            color_dict=color_dict,
+        )
+        for i, df in enumerate([df1, df2]):
+            text_unit_change = "" if unit_change is None else f" ({unit_change[i]})"
+            f.plot(
+                kind="bubble",
+                data=df,
+                ax_index=i,
+                style={
+                    "title": "金额" if i == 0 else "PTD",
+                    "xlabel": f"{self.name}{text_period}{text_unit_change}",
+                    "ylabel": f"{text_period}同比净增长{text_unit_change}" if i == 0 else "",
+                    "show_legend": True if i != 0 else False,
+                },
+                x="表现",
+                y="同比净增长",
+                z="表现",
+                hue=hue,
+                focus=focus,
+                y_avg=0,
+                label_limit=label_limit,
+                label_topy=label_topy,
+                x_fmt="{:,.0f}",
+                y_fmt="{:+,.0f}",
+            )
+
+        f.save(tight_layout=False)
 
         return df
 
@@ -425,7 +642,7 @@ class CHPA(DfAnalyzer):
         text_unit = D_TEXT.get(unit, unit)
         text_period = D_TEXT.get(period)
 
-        df.replace({np.inf: 0, -np.inf: 0, np.nan:0}, inplace=True)
+        df.replace({np.inf: 0, -np.inf: 0, np.nan: 0}, inplace=True)
         f = plt.figure(
             FigureClass=GridFigure,
             width=15,
@@ -481,8 +698,14 @@ class CHPA(DfAnalyzer):
         )
 
         df_topn = df.head(topn)
-        if focus not in df_topn.index and focus is not None:
-            df_topn = df_topn.append(df.loc[focus, :])
+        if focus is not None:
+            if isinstance(focus, list):
+                for item in focus:
+                    if item not in df_topn.index and item in df.index:
+                        df_topn = df_topn.append(df.loc[item, :])
+            else:
+                if focus not in df_topn.index and focus in df.index:
+                    df_topn = df_topn.append(df.loc[focus, :])
 
         text_index = D_TEXT.get(index, index)
         text_unit = D_TEXT.get(unit, unit)
@@ -647,6 +870,7 @@ class CHPA(DfAnalyzer):
         index: str,
         hue: Optional[str] = None,
         unit: Literal["Value", "Volume (Std Counting Unit)"] = "Value",
+        unit_change: Optional[Literal["十亿", "亿", "百万", "万", "千"]] = None,
         period: Literal["MAT", "QTR"] = "MAT",
         date: Optional[str] = None,
         focus: Optional[str] = None,
@@ -665,6 +889,8 @@ class CHPA(DfAnalyzer):
             fillna=False,
             show_total=show_total,
         )
+        
+        df.loc[:,["表现", "同比净增长"]] = df.loc[:,["表现", "同比净增长"]].div(self.unit_change(unit_change))
 
         df.replace({np.inf: 0, -np.inf: np.nan}, inplace=True)
         print(df)
@@ -676,13 +902,15 @@ class CHPA(DfAnalyzer):
         text_unit = D_TEXT.get(unit, unit)
         text_period = D_TEXT.get(period)
         text_topn = f"TOP{topn}" if df.shape[0] > topn else ""
+        text_unit_change = "" if unit_change is None else f" ({unit_change})"
 
         cmap_share = normed_cmap(df["份额"].fillna(0), cmap=mpl.cm.PiYG)
         cmap_share_diff = centered_cmap(
             df["份额变化"].fillna(0), cmap=mpl.cm.PiYG, center=0
         )
+        print(df["EI"])
         cmap_ei = centered_cmap(
-            df["同比增长率"].fillna(0), cmap=mpl.cm.PiYG, center=100
+            df["EI"].fillna(0), cmap=mpl.cm.PiYG, center=100, vmin=80, vmax=120
         )
 
         col_defs = (
@@ -731,18 +959,24 @@ class CHPA(DfAnalyzer):
             + [
                 ColumnDefinition(
                     name="表现",
-                    title=f"{text_period}{text_unit}",
+                    title=(
+                        f"{text_period}{text_unit}"
+                        if unit_change is None
+                        else f"{text_period}{text_unit}{text_unit_change}"
+                    ),
                     textprops={"ha": "right"},
                     formatter="{:,.0f}",
+                    width=1
                 )
             ]
             + [
                 ColumnDefinition(
                     name="同比净增长",
-                    title="同比净增长",
+                    title="同比净增长" if unit_change is None else f"同比净增长{text_unit_change}",
                     textprops={"ha": "right"},
-                    formatter="{:,.0f}",
+                    formatter="{:+,.0f}",
                     text_cmap=lambda x: "red" if x < 0 else "black",
+                    width=1
                 )
             ]
             + [
@@ -822,7 +1056,7 @@ class CHPA(DfAnalyzer):
         fig.suptitle(title, fontsize=22)
 
         # df.head(topn).to_excel(f"plots/{title}.xlsx")
-        print(df.head(topn))
+        # print(df.head(topn))
         table = Table(
             df.head(topn),
             column_definitions=col_defs,
@@ -847,9 +1081,10 @@ class CHPA(DfAnalyzer):
             if isinstance(focus, str):
                 focus = [focus]
             for item in focus:
-                focus_rindex = df.index.get_loc(item)
-                if focus_rindex <= topn -1:
-                    table.rows[focus_rindex].set_facecolor("lightcyan")
+                if item in df.index:
+                    focus_rindex = df.index.get_loc(item)
+                    if focus_rindex <= topn - 1:
+                        table.rows[focus_rindex].set_facecolor("lightcyan")
 
         if show_total:
             table.rows[df.head(topn).shape[0] - 1].set_facecolor("azure")

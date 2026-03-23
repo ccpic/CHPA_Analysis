@@ -1,4 +1,18 @@
 {
     "python.pythonPath": "c:\\Users\\chencheng\\PycharmProjects\\CHPA_Analysis\\venv\\Scripts\\python.exe",
-    "python.analysis.extraPaths": ["../chart_class"]
+    "python.analysis.extraPaths": [
+        "../chart_class"
+    ],
+    "cursorpyright.analysis.extraPaths": [
+        "../chart_class"
+    ],
+    "workbench.editorAssociations": {
+        "*.copilotmd": "vscode.markdown.preview.editor",
+        "*.pptx": "default",
+        "file:/**/*.xlsx": "jupyter-data-wrangler",
+        "*.duckdb": "default",
+        "*.parquet": "duckdb.dataFileViewer",
+        "*.csv": "duckdb.dataFileViewer",
+        "*.tsv": "duckdb.dataFileViewer"
+    }
 }

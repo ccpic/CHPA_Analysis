@@ -154,18 +154,18 @@ dpp4_products = r.data.query("`TC III` == 'DPP4'")["PRODUCT"].unique()
 #     index="MOLECULE", unit="PTD", hue="TC III", ylim=(-0.4, 1), label_topy=0
 # )
 
-r.plottable_latest(
-    index="MOLECULE",
-    unit="Value",
-    hue="TC III",
-    focus=dpp4_molecules,
-)
-r.plottable_latest(
-    index="MOLECULE",
-    unit="PTD",
-    hue="TC III",
-    focus=dpp4_molecules,
-)
+# r.plottable_latest(
+#     index="MOLECULE",
+#     unit="Value",
+#     hue="TC III",
+#     focus=dpp4_molecules,
+# )
+# r.plottable_latest(
+#     index="MOLECULE",
+#     unit="PTD",
+#     hue="TC III",
+#     focus=dpp4_molecules,
+# )
 
 # r.plot_share_trend(index="MOLECULE")
 # r.plot_share_trend(index="MOLECULE", unit="PTD")

@@ -46,21 +46,39 @@ convert_std_volume(df, "MOLECULE", "维格列汀", "50MG", 1 / 2)
 
 
 r = CHPA(df, name="DPP4抑制剂单方市场", date_column="DATE", period_interval=3)
-
+print(r.data["MOLECULE"].unique())
 # r.plot_overall_performance(
-#     index="MOLECULE", sorter=["西格列汀", "利格列汀", "沙格列汀", "维格列汀", "阿格列汀"], unit_change="百万"
+#     index="MOLECULE",
+#     sorter=[
+#         "西格列汀",
+#         "利格列汀",
+#         "沙格列汀",
+#         "维格列汀",
+#         "阿格列汀",
+#         "替格列汀",
+#         "瑞格列汀",
+#     ],
+#     unit_change="百万",
 # )
 
 # r.plot_overall_performance(
 #     index="MOLECULE",
 #     unit="PTD",
 #     unit_change="百万",
-#     sorter=["西格列汀", "利格列汀", "沙格列汀", "维格列汀", "阿格列汀"],
+#     sorter=[
+#         "西格列汀",
+#         "利格列汀",
+#         "沙格列汀",
+#         "维格列汀",
+#         "阿格列汀",
+#         "替格列汀",
+#         "瑞格列汀",
+#     ],
 # )
 
 # r.plot_overall_performance(
 #     index="MOLECULE",
-#     sorter=["西格列汀", "利格列汀", "沙格列汀", "维格列汀", "阿格列汀"],
+#     sorter=["西格列汀", "利格列汀", "沙格列汀", "维格列汀", "阿格列汀", "替格列汀", "瑞格列汀"],
 #     unit_change="百万",
 #     period="QTR",
 # )
@@ -69,7 +87,7 @@ r = CHPA(df, name="DPP4抑制剂单方市场", date_column="DATE", period_interv
 #     index="MOLECULE",
 #     unit="PTD",
 #     unit_change="百万",
-#     sorter=["西格列汀", "利格列汀", "沙格列汀", "维格列汀", "阿格列汀"],
+#     sorter=["西格列汀", "利格列汀", "沙格列汀", "维格列汀", "阿格列汀", "替格列汀", "瑞格列汀"],
 #     period="QTR",
 # )
 
@@ -82,47 +100,54 @@ r = CHPA(df, name="DPP4抑制剂单方市场", date_column="DATE", period_interv
 #     unit="PTD",
 # )
 
-# r.plottable_latest(index="MOLECULE", unit="Value", fontsize=18)
-# r.plottable_latest(index="MOLECULE", unit="PTD", fontsize=18)
+# r.plottable_latest(index="MOLECULE", unit="Value", fontsize=18, hue="VBP")
+# r.plottable_latest(
+#     index="MOLECULE",
+#     unit="PTD",
+#     fontsize=18,
+#     hue="VBP",
+# )
+
+# r.plot_share_trend(index="MOLECULE", unit="Value")
+# r.plot_share_trend(index="MOLECULE", unit="PTD")
 
 # r.plottable_annual(index="MOLECULE", unit="Value", fontsize=18)
 # r.plottable_annual(index="MOLECULE", unit="PTD", fontsize=18)
 
 # r.plot_size_diff(
-#     index="PRODUCT", unit="Value", unit_change="百万", label_limit=5, hue="MOLECULE"
+#     index="PRODUCT", unit="Value", unit_change="百万", label_limit=10, hue="MOLECULE"
 # )
 
 # r.plot_size_diff(
-#     index="PRODUCT", unit="PTD", unit_change="百万", label_limit=5, hue="MOLECULE"
+#     index="PRODUCT", unit="PTD", unit_change="百万", label_limit=10, hue="MOLECULE"
 # )
 # r.plot_share_gr(
 #     index="PRODUCT",
 #     unit="Value",
-#     label_limit=7,
+#     label_limit=10,
 #     hue="MOLECULE",
-#     ylim=(-0.2, 0.4),
+#     ylim=(-0.5, 0.5),
 #     label_topy=0,
 # )
 
 # r.plot_share_gr(
 #     index="PRODUCT",
 #     unit="PTD",
-#     label_limit=7,
+#     label_limit=10,
 #     hue="MOLECULE",
-#     ylim=(-0.2, 0.4),
+#     ylim=(-0.5, 0.5),
 #     label_topy=0,
 # )
 
-# r.plottable_latest(index="PRODUCT", unit="Value", hue="CORPORATION")
-# r.plottable_latest(index="PRODUCT", unit="PTD", hue="CORPORATION")
 
-# r.plot_share_trend(
-#     index="PRODUCT",
-# )
-# r.plot_share_trend(
-#     index="PRODUCT",
-#     unit="PTD",
-# )
-
-# r.plottable_annual(index="PRODUCT")
-# r.plottable_annual(index="PRODUCT", unit="PTD")
+for unit in ["Value", "PTD"]:
+    r.plottable_latest(
+        index="PRODUCT",
+        unit=unit,
+        hue=("MOLECULE", "CORPORATION", "VBP"),
+    )
+    r.plot_share_trend(
+        index="PRODUCT",
+        unit=unit,
+    )
+    r.plottable_annual(index="PRODUCT", unit=unit)
